@@ -1,0 +1,521 @@
+---
+import { getBasePath, getAssetPath } from '../utils/pathUtils';
+import ImagePreview from './ImagePreview.astro';
+
+// Gallery.astro - 图片画廊组件
+export interface Props {
+  class?: string;
+  basePath?: string; // 图片基础路径
+  enablePreview?: boolean; // 是否启用图片预览功能
+}
+
+const { class: className, basePath = getBasePath(), enablePreview = true } = Astro.props;
+---
+
+<div class={`gallery ${className || ""}`}>
+  <slot />
+</div>
+
+{enablePreview && <ImagePreview />}
+
+<script>
+  // 图片画廊处理脚本
+  class AstroGallery {
+    private processedImages: Set<HTMLElement>;
+
+    constructor() {
+      this.processedImages = new Set(); // 记录已处理的图片
+      this.init();
+    }
+
+    init() {
+      // 等待DOM加载完成
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () =>
+          this.processGalleries(),
+        );
+      } else {
+        // 延迟执行，确保内容已渲染
+        setTimeout(() => this.processGalleries(), 100);
+      }
+
+      // 监听窗口大小变化，重新处理gallery
+      let resizeTimeout: ReturnType<typeof setTimeout>;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          this.processGalleries();
+        }, 250);
+      });
+    }
+
+    processGalleries() {
+      // 查找文章内容区域
+      const contentAreas = document.querySelectorAll(".prose");
+
+      console.log("Gallery: Found", contentAreas.length, "content areas");
+
+      contentAreas.forEach((container) => {
+        // 首先清理已存在的gallery容器
+        this.cleanupExistingGalleries(container as HTMLElement);
+
+        // 然后处理图片路径优化
+        this.optimizeImagePaths(container as HTMLElement);
+        // 最后创建画廊
+        this.createGallery(container as HTMLElement);
+      });
+    }
+
+    cleanupExistingGalleries(container: HTMLElement) {
+      // 移除所有已存在的gallery容器，但保留图片
+      const existingContainers =
+        container.querySelectorAll(".gallery-container");
+      existingContainers.forEach((container) => {
+        // 将容器内的所有figure移回父元素
+        const figures = container.querySelectorAll("figure.gallery-image");
+        const parent = container.parentElement;
+        if (parent) {
+          figures.forEach((figure) => {
+            parent.insertBefore(figure, container);
+          });
+        }
+        container.remove();
+      });
+
+      // 移除所有已处理的图片标记
+      const processedImages = container.querySelectorAll(
+        ".gallery-image-processed",
+      );
+      processedImages.forEach((img) => {
+        img.classList.remove("gallery-image-processed");
+        // 移除figure包装器
+        const figure = img.closest("figure.gallery-image");
+        if (figure) {
+          const parent = figure.parentElement;
+          if (parent) {
+            parent.insertBefore(img, figure);
+            figure.remove();
+          }
+        }
+      });
+
+      // 清理gallery-paragraph标记
+      const galleryParagraphs =
+        container.querySelectorAll(".gallery-paragraph");
+      galleryParagraphs.forEach((p) => {
+        p.classList.remove("gallery-paragraph");
+      });
+    }
+
+    optimizeImagePaths(container: HTMLElement) {
+      const basePath = "${basePath}";
+      const currentPath = window.location.pathname;
+
+      if (!basePath && !currentPath.includes("/blog/")) return;
+
+      const images = container.querySelectorAll("img");
+      images.forEach((img) => {
+        const src = img.getAttribute("src");
+        if (src && !src.startsWith("/") && !src.startsWith("http")) {
+          let newSrc = src;
+
+          // 如果有basePath，使用basePath
+          if (basePath) {
+            newSrc = `${basePath}/${src}`;
+          } else if (currentPath.includes("/blog/")) {
+            // 自动推断博客图片路径
+            const pathParts = currentPath.split("/");
+            const blogIndex = pathParts.indexOf("blog");
+            if (blogIndex !== -1 && pathParts.length > blogIndex + 1) {
+              const blogPath = pathParts.slice(blogIndex + 1).join("/");
+              // 在客户端脚本中，我们需要手动处理 base URL
+              const baseUrl = window.location.pathname.split('/')[1] || '';
+              const basePrefix = baseUrl ? `/${baseUrl}` : '';
+              newSrc = `${basePrefix}/imgs/blog/${blogPath}/${src}`;
+            }
+          }
+
+          img.setAttribute("src", newSrc);
+        }
+      });
+    }
+
+    createGallery(container: HTMLElement) {
+      // 首先处理所有图片，为独立段落中的图片添加标记
+      const paragraphs = container.querySelectorAll("p");
+
+      paragraphs.forEach((paragraph) => {
+        const images = paragraph.querySelectorAll("img");
+
+        // 只处理包含图片但没有其他文本内容的段落
+        if (images.length > 0) {
+          const textContent = paragraph.textContent?.trim() || "";
+          const hasOnlyImages =
+            textContent === "" ||
+            this.containsOnlyImageAltText(paragraph, images);
+
+          if (hasOnlyImages) {
+            paragraph.classList.add("gallery-paragraph");
+
+            // 为每个图片创建包装器
+            images.forEach((img) => {
+              if (!img.closest(".gallery-image")) {
+                this.wrapImage(img);
+              }
+            });
+          }
+        }
+      });
+
+      // 处理Image组件生成的图片
+      this.processImageComponents(container);
+
+      // 查找所有gallery图片并按相邻性分组
+      this.groupAdjacentFigures(container);
+    }
+
+    processImageComponents(container: HTMLElement) {
+      // 查找所有Image组件生成的图片
+      const imageComponents = container.querySelectorAll(
+        "img[data-image-component='true']",
+      );
+
+      imageComponents.forEach((img) => {
+        if (!img.closest(".gallery-image")) {
+          // 为Image组件生成的图片创建包装器
+          this.wrapImage(img as HTMLImageElement);
+        }
+      });
+    }
+
+    containsOnlyImageAltText(
+      paragraph: HTMLElement,
+      images: NodeListOf<HTMLImageElement>,
+    ): boolean {
+      // 检查段落是否只包含图片和它们的alt文本
+      const textContent = paragraph.textContent?.trim() || "";
+      let altTexts = "";
+
+      images.forEach((img) => {
+        altTexts += (img.alt || "").trim();
+      });
+
+      return textContent === altTexts;
+    }
+
+    wrapImage(img: HTMLImageElement) {
+      // 给图片添加gallery标记类
+      img.classList.add("gallery-image-processed");
+
+      // 创建图片包装器
+      const figure = document.createElement("figure");
+      figure.className = "gallery-image";
+
+      // 插入figure到img之前，然后将img移入figure
+      img.parentElement?.insertBefore(figure, img);
+      figure.appendChild(img);
+
+      // 设置图片的基本样式
+      img.style.width = "100%";
+      img.style.height = "auto";
+      img.style.display = "block";
+      img.style.margin = "0";
+
+      // 计算图片的宽高比并设置容器宽度
+      this.setImageAspectRatio(img, figure);
+
+      // 如果图片有alt属性，添加figcaption
+      if (img.alt) {
+        const figcaption = document.createElement("figcaption");
+        figcaption.textContent = img.alt;
+        figure.appendChild(figcaption);
+      }
+
+      // 确保图片预览功能正常工作
+      // 等待图片加载完成后再设置预览
+      const setupPreview = () => {
+        if (window.imagePreviewManager) {
+          window.imagePreviewManager.enablePreview(img);
+        }
+      };
+
+      if (img.complete && img.naturalWidth > 0) {
+        setupPreview();
+      } else {
+        img.addEventListener('load', setupPreview);
+      }
+
+      // 添加图片加载状态指示
+      if (!img.complete || img.naturalWidth === 0) {
+        figure.style.backgroundColor = "var(--bg-soft)";
+        figure.style.minHeight = "200px";
+        figure.style.display = "flex";
+        figure.style.alignItems = "center";
+        figure.style.justifyContent = "center";
+
+        const loadingText = document.createElement("div");
+        loadingText.textContent = "加载中...";
+        loadingText.style.color = "var(--text-tertiary)";
+        loadingText.style.fontSize = "0.9rem";
+        figure.appendChild(loadingText);
+
+        img.addEventListener("load", () => {
+          loadingText.remove();
+          figure.style.backgroundColor = "";
+          figure.style.minHeight = "";
+          figure.style.display = "";
+          figure.style.alignItems = "";
+          figure.style.justifyContent = "";
+        });
+      }
+    }
+
+    setImageAspectRatio(img: HTMLImageElement, figure: HTMLElement) {
+      const updateWidth = () => {
+        // 获取图片的自然尺寸
+        const naturalWidth = img.naturalWidth;
+        const naturalHeight = img.naturalHeight;
+
+        if (naturalWidth && naturalHeight) {
+          // 计算宽高比
+          const aspectRatio = naturalWidth / naturalHeight;
+
+          // 存储宽高比到data属性，用于设置flex-grow和flex-basis
+          figure.setAttribute("data-aspect-ratio", aspectRatio.toString());
+
+          // 设置flex-grow为宽高比，这样宽度会按比例分配
+          figure.style.flexGrow = aspectRatio.toString();
+          figure.style.flexBasis = "0";
+        }
+      };
+
+      // 延迟执行，确保DOM结构完整
+      setTimeout(() => {
+        // 如果图片已经加载完成
+        if (img.complete && img.naturalWidth > 0) {
+          updateWidth();
+        } else {
+          // 等待图片加载完成
+          img.addEventListener("load", updateWidth);
+          // 添加错误处理
+          img.addEventListener("error", () => {
+            console.warn("Gallery: Image failed to load:", img.src);
+            figure.style.minHeight = "200px";
+            figure.style.backgroundColor = "var(--bg-soft)";
+          });
+        }
+      }, 10);
+    }
+
+    groupAdjacentFigures(container: HTMLElement) {
+      const figures = container.querySelectorAll("figure.gallery-image");
+      console.log("Gallery: Found", figures.length, "gallery figures");
+
+      let currentGallery: HTMLElement[] = [];
+
+      for (const figure of Array.from(figures)) {
+        const fig = figure as HTMLElement;
+
+        if (!currentGallery.length) {
+          // 第一个figure
+          currentGallery = [fig];
+          console.log("Gallery: Starting new gallery");
+        } else if (
+          this.areFiguresAdjacent(
+            currentGallery[currentGallery.length - 1],
+            fig,
+          )
+        ) {
+          // 检查是否相邻（包括跳过空行的情况）
+          currentGallery.push(fig);
+          console.log(
+            "Gallery: Adjacent figures found, group size:",
+            currentGallery.length,
+          );
+        } else {
+          // 结束当前gallery并开始新的
+          if (currentGallery.length > 0) {
+            console.log(
+              "Gallery: Creating gallery with",
+              currentGallery.length,
+              "images",
+            );
+            this.wrapGalleryGroup(currentGallery);
+          }
+          currentGallery = [fig];
+          console.log("Gallery: Starting new gallery after gap");
+        }
+      }
+
+      // 处理最后一组
+      if (currentGallery.length > 0) {
+        console.log(
+          "Gallery: Creating final gallery with",
+          currentGallery.length,
+          "images",
+        );
+        this.wrapGalleryGroup(currentGallery);
+      }
+    }
+
+    areFiguresAdjacent(fig1: HTMLElement, fig2: HTMLElement): boolean {
+      // 检查两个figure之间是否有空行或GalleryBreak组件
+      let current = fig1.nextElementSibling;
+
+      while (current) {
+        if (current === fig2) {
+          return true; // 找到了fig2，说明相邻
+        }
+
+        // 检查是否是GalleryBreak组件
+        if (current.classList?.contains("gallery-break")) {
+          return false; // 遇到分割标记，不相邻
+        }
+
+        // 跳过空行（空的p标签、br标签、空白文本节点等）
+        if (this.isEmptyElement(current)) {
+          current = current.nextElementSibling;
+          continue;
+        }
+
+        // 如果遇到非空元素且不是fig2，说明不相邻
+        break;
+      }
+
+      return false;
+    }
+
+    isEmptyElement(element: Element): boolean {
+      // 检查元素是否为空（只包含空白字符）
+      if (element.tagName === "P") {
+        const textContent = element.textContent?.trim() || "";
+        return textContent === "";
+      }
+
+      if (element.tagName === "BR") {
+        return true;
+      }
+
+      // 检查是否是空白文本节点
+      if (element.nodeType === Node.TEXT_NODE) {
+        const textContent = element.textContent?.trim() || "";
+        return textContent === "";
+      }
+
+      return false;
+    }
+
+    wrapGalleryGroup(figures: HTMLElement[]) {
+      // 创建gallery容器
+      const galleryContainer = document.createElement("div");
+      galleryContainer.className = "gallery-container";
+
+      // 插入到第一个figure之前
+      const firstFigure = figures[0];
+      const parentNode = firstFigure.parentElement;
+      if (parentNode) {
+        parentNode.insertBefore(galleryContainer, firstFigure);
+
+        // 将所有figure移入gallery容器
+        figures.forEach((figure) => {
+          galleryContainer.appendChild(figure);
+        });
+
+        // 清理空的段落
+        this.cleanupEmptyParagraphs(parentNode);
+      }
+    }
+
+    cleanupEmptyParagraphs(container: HTMLElement) {
+      // 移除空的段落
+      const paragraphs = container.querySelectorAll("p");
+      paragraphs.forEach((p) => {
+        if (p.children.length === 0 && p.textContent?.trim() === "") {
+          p.remove();
+        }
+      });
+    }
+  }
+
+  // 初始化gallery
+  new AstroGallery();
+</script>
+
+<style>
+  /* Gallery 容器样式 - 只定义组件特有的样式 */
+  .gallery-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 2rem 0;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  /* 移动端优化 */
+  @media (max-width: 768px) {
+    .gallery-container {
+      flex-direction: column;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    /* 确保移动端图片正确显示 */
+    :global(.gallery-image) {
+      flex: none !important;
+      width: 100% !important;
+      min-height: 200px !important;
+    }
+
+    :global(.gallery-image img) {
+      width: 100% !important;
+      height: auto !important;
+      object-fit: contain !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .gallery-container {
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    :global(.gallery-image) {
+      min-height: 150px !important;
+    }
+
+    :global(.gallery-image img) {
+    }
+  }
+
+  /* 单行显示时的特殊样式 */
+  .gallery-container:has(> :global(.gallery-image):only-child)
+    :global(.gallery-image) {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* 隐藏原始的gallery-paragraph */
+  :global(.gallery-paragraph:empty) {
+    display: none;
+  }
+
+  /* 图片加载失败时的占位样式 */
+  :global(.gallery-image img[src=""]) {
+    display: none;
+  }
+
+  :global(.gallery-image:not(:has(img))) {
+    min-height: 200px;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :global(.gallery-image:not(:has(img))::before) {
+    content: "图片加载失败";
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+  }
+</style>

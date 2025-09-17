@@ -1,0 +1,462 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getReadingTime } from '../utils/readingTime';
+import { getBlogPostPath, getBlogListPath, getAssetPath } from '../utils/pathUtils';
+
+export interface Props {
+  posts: CollectionEntry<'blog'>[];
+  showTitle?: boolean;
+  title?: string;
+  showViewAll?: boolean;
+  viewAllLink?: string;
+  limit?: number;
+  showHeroImage?: boolean;
+  enableFiltering?: boolean;
+}
+
+const {
+  posts,
+  showTitle = true,
+  title = "📝 最新文章",
+  showViewAll = true,
+  viewAllLink = getBlogListPath(),
+  limit,
+  showHeroImage = false,
+  enableFiltering = false
+} = Astro.props;
+
+const displayPosts = limit ? posts.slice(0, limit) : posts;
+
+// 为每篇文章计算阅读时间
+const postsWithReadingTime = await Promise.all(
+  displayPosts.map(async (post) => {
+    const readingTime = await getReadingTime(post);
+    return { post, readingTime };
+  })
+);
+
+const formatDate = (date: Date | string) => {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  return dateObj.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+---
+
+<section class="articles-section">
+  {showTitle && (
+    <div class="section-header">
+      <h2 class="section-title">{title}</h2>
+      {showViewAll && limit && posts.length > limit && (
+        <a href={viewAllLink} class="view-all-link">
+          查看全部 <span class="arrow">→</span>
+        </a>
+      )}
+    </div>
+  )}
+
+  <div class="articles-list">
+    {postsWithReadingTime.map(({ post, readingTime }) => (
+      <article
+        class="article-item"
+        {...(enableFiltering ? {
+          'data-tags': (post.data.tags || []).join(','),
+          'data-category': post.data.category || ''
+        } : {})}
+      >
+        <div class="article-content">
+          <!-- 文章头部 -->
+          <div class="article-header">
+            <div class="article-main">
+              <h3 class="article-title">
+                <a href={getBlogPostPath(post.slug)} class="article-link">
+                  {post.data.title}
+                </a>
+              </h3>
+
+              {post.data.description && (
+                <p class="article-excerpt">
+                  {post.data.description}
+                </p>
+              )}
+            </div>
+
+            <!-- 右侧封面图片 -->
+            {showHeroImage && post.data.heroImage && (
+              <div class="article-hero">
+                <a href={getBlogPostPath(post.slug)}>
+                <img
+                  src={getAssetPath(post.data.heroImage)}
+                  alt={post.data.title}
+                  class="hero-image"
+                  />
+                </a>
+              </div>
+            )}
+          </div>
+
+          <!-- 文章元信息 -->
+          <div class="article-meta">
+            <time class="article-date">
+              📅 {formatDate(post.data.pubDate)}
+            </time>
+            <span class="article-author">
+              ✍️ {post.data.author}
+            </span>
+            <span class="reading-time">
+              ⏱️ {readingTime.text}
+            </span>
+          </div>
+
+          <!-- 文章底部 -->
+          <div class="article-footer">
+            <div class="article-tags-section">
+              {post.data.category && (
+                <a href={getBlogListPath({ category: post.data.category })} class="category-badge">
+                  📂 {post.data.category}
+                </a>
+              )}
+
+              {(post.data.tags || []).length > 0 && (
+                <div class="article-tags">
+                  {(post.data.tags || []).slice(0, 4).map((tag) => (
+                    <a href={getBlogListPath({ tag })} class="article-tag">
+                      {tag}
+                    </a>
+                  ))}
+                  {(post.data.tags || []).length > 4 && (
+                    <span class="more-tags">
+                      +{(post.data.tags || []).length - 4}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <a href={getBlogPostPath(post.slug)} class="read-more">
+              阅读更多 →
+            </a>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  /* 文章列表 */
+  .articles-section {
+    margin-bottom: 3rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    margin: 0;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .view-all-link {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .view-all-link:hover {
+    color: var(--brand-dark);
+  }
+
+  .view-all-link .arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .view-all-link:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  .articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .article-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.5rem 1.5rem 1.25rem 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .article-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--brand-primary);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+  }
+
+  .article-item:hover {
+    transform: translateX(8px);
+    box-shadow: var(--blog-shadow-2);
+    border-color: var(--brand-primary);
+  }
+
+  .article-item:hover::before {
+    transform: scaleY(1);
+  }
+
+  .article-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .article-main {
+    flex: 1;
+  }
+
+  .article-title {
+    margin: 1rem 0 0.75rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--brand-primary);
+    display: inline-block;
+  }
+
+  .article-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .article-link:hover {
+    color: var(--brand-dark);
+  }
+
+  .article-excerpt {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  .article-meta {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+
+  .article-hero {
+    width: 200px;
+    height: 200px;
+    border-radius: 16px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: var(--blog-shadow-2);
+    transition: box-shadow 0.3s ease;
+    position: relative;
+  }
+
+  .hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease, filter 0.3s ease;
+    border-radius: 16px;
+    transform-origin: center;
+  }
+
+  .article-item:hover .hero-image {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+
+  .article-item:hover .article-hero {
+    box-shadow: var(--blog-shadow-3);
+  }
+
+  .article-date,
+  .article-author,
+  .reading-time {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 500;
+  }
+
+  .article-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .article-tags-section {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .category-badge {
+    background: var(--brand-lighter);
+    color: var(--brand-primary);
+    padding: 0.3rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: var(--blog-transition);
+    border: 1px solid var(--brand-primary);
+  }
+
+  .category-badge:hover {
+    background: var(--brand-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--blog-shadow-2);
+  }
+
+  .article-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .article-tag {
+    background: var(--bg-soft);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+  }
+
+  .article-tag:hover {
+    background: var(--brand-lighter);
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    transform: translateY(-1px);
+  }
+
+  .more-tags {
+    background: var(--bg-soft);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    border: 1px solid var(--border-color);
+  }
+
+  .read-more {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .read-more:hover {
+    color: var(--brand-dark);
+    transform: translateX(4px);
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .articles-list {
+      gap: 1rem;
+    }
+
+    .article-item {
+      padding: 1rem 1.25rem;
+    }
+
+    .article-header {
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .article-meta {
+      gap: 1.5rem;
+    }
+
+    .article-hero {
+      width: 120px;
+      height: 120px;
+      align-self: flex-start;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .section-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .article-meta {
+      gap: 1rem;
+      flex-direction: column;
+    }
+
+    .article-footer {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .article-tags-section {
+      gap: 0.5rem;
+    }
+
+    .article-hero {
+      width: 100px;
+      height: 100px;
+    }
+  }
+</style>

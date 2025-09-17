@@ -1,0 +1,424 @@
+---
+// ImagePreview.astro - 图片预览组件
+// 使用原生JavaScript实现点击图片缩放拖拽预览功能
+---
+
+<div id="image-preview-container" class="image-preview-container">
+  <div class="image-preview-overlay">
+    <img id="preview-image" class="preview-image" src="" alt="预览图片">
+    <div class="preview-controls">
+      <button class="preview-btn preview-close" aria-label="关闭">×</button>
+      <button class="preview-btn preview-zoom-in" aria-label="放大">+</button>
+      <button class="preview-btn preview-zoom-out" aria-label="缩小">-</button>
+      <button class="preview-btn preview-reset" aria-label="重置">⌂</button>
+    </div>
+    <div class="preview-counter">
+      <span id="current-index">1</span> / <span id="total-count">1</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  class ImagePreviewManager {
+    private container: HTMLElement;
+    private overlay: HTMLElement;
+    private image: HTMLImageElement | null;
+    private currentImages: HTMLImageElement[] = [];
+    private currentIndex: number = 0;
+    private scale: number = 1;
+    private translateX: number = 0;
+    private translateY: number = 0;
+    private isDragging: boolean = false;
+    private startX: number = 0;
+    private startY: number = 0;
+    private processedImages: Set<HTMLElement> = new Set();
+
+    constructor() {
+      this.container = document.getElementById('image-preview-container')!;
+      this.overlay = this.container.querySelector('.image-preview-overlay')!;
+      this.image = document.getElementById('preview-image') as HTMLImageElement;
+      this.init();
+    }
+
+    init() {
+      // 等待DOM加载完成
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => this.setupImagePreview());
+      } else {
+        setTimeout(() => this.setupImagePreview(), 100);
+      }
+
+      // 绑定事件
+      this.bindEvents();
+    }
+
+    bindEvents() {
+      // 关闭按钮
+      this.container.querySelector('.preview-close')?.addEventListener('click', () => this.close());
+
+      // 缩放按钮
+      this.container.querySelector('.preview-zoom-in')?.addEventListener('click', () => this.zoomIn());
+      this.container.querySelector('.preview-zoom-out')?.addEventListener('click', () => this.zoomOut());
+      this.container.querySelector('.preview-reset')?.addEventListener('click', () => this.resetZoom());
+
+      // 点击背景关闭
+      this.overlay.addEventListener('click', (e) => {
+        if (e.target === this.overlay) {
+          this.close();
+        }
+      });
+
+      // 键盘事件
+      document.addEventListener('keydown', (e) => {
+        if (!this.isVisible()) return;
+
+        switch (e.key) {
+          case 'Escape':
+            this.close();
+            break;
+          case 'ArrowLeft':
+            this.previousImage();
+            break;
+          case 'ArrowRight':
+            this.nextImage();
+            break;
+          case '+':
+          case '=':
+            this.zoomIn();
+            break;
+          case '-':
+            this.zoomOut();
+            break;
+          case '0':
+            this.resetZoom();
+            break;
+        }
+      });
+
+      // 鼠标滚轮缩放
+      this.image?.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        this.scale = Math.min(Math.max(0.5, this.scale + delta), 4);
+        this.updateTransform();
+      });
+
+      // 拖拽功能
+      this.image?.addEventListener('mousedown', (e) => {
+        this.isDragging = true;
+        this.startX = e.clientX - this.translateX;
+        this.startY = e.clientY - this.translateY;
+        if (this.image) this.image.style.cursor = 'grabbing';
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!this.isDragging) return;
+        this.translateX = e.clientX - this.startX;
+        this.translateY = e.clientY - this.startY;
+        this.updateTransform();
+      });
+
+      document.addEventListener('mouseup', () => {
+        this.isDragging = false;
+        if (this.image) this.image.style.cursor = 'grab';
+      });
+
+      // 触摸事件支持
+      this.image?.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          const touch = e.touches[0];
+          this.isDragging = true;
+          this.startX = touch.clientX - this.translateX;
+          this.startY = touch.clientY - this.translateY;
+        }
+        e.preventDefault();
+      });
+
+      document.addEventListener('touchmove', (e) => {
+        if (!this.isDragging || e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        this.translateX = touch.clientX - this.startX;
+        this.translateY = touch.clientY - this.startY;
+        this.updateTransform();
+        e.preventDefault();
+      });
+
+      document.addEventListener('touchend', () => {
+        this.isDragging = false;
+      });
+    }
+
+    setupImagePreview() {
+      // 查找所有图片
+      const images = document.querySelectorAll('img:not([data-no-preview])');
+
+      images.forEach((img) => {
+        if (!this.processedImages.has(img as HTMLElement)) {
+          this.addPreviewToImage(img as HTMLImageElement);
+          this.processedImages.add(img as HTMLElement);
+        }
+      });
+    }
+
+    addPreviewToImage(img: HTMLImageElement) {
+      // 添加点击事件监听器
+      img.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.openPreview(img);
+      });
+
+      // 添加预览样式
+      img.style.cursor = 'zoom-in';
+      img.setAttribute('data-preview-enabled', 'true');
+    }
+
+    openPreview(clickedImg: HTMLImageElement) {
+      // 获取所有可预览的图片
+      this.currentImages = Array.from(document.querySelectorAll('img[data-preview-enabled="true"]')) as HTMLImageElement[];
+
+      // 找到当前点击图片的索引
+      this.currentIndex = this.currentImages.findIndex(img => img === clickedImg);
+
+      if (this.currentIndex === -1) return;
+
+      // 显示预览
+      this.show();
+      this.loadImage(this.currentIndex);
+    }
+
+    show() {
+      this.container.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    hide() {
+      this.container.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    isVisible(): boolean {
+      return this.container.style.display === 'flex';
+    }
+
+    close() {
+      this.hide();
+      this.resetZoom();
+    }
+
+    loadImage(index: number) {
+      if (index < 0 || index >= this.currentImages.length || !this.image) return;
+
+      const img = this.currentImages[index];
+      this.image.src = img.src;
+      this.image.alt = img.alt || '';
+
+      // 更新计数器
+      const currentIndexEl = document.getElementById('current-index');
+      const totalCountEl = document.getElementById('total-count');
+      if (currentIndexEl) currentIndexEl.textContent = (index + 1).toString();
+      if (totalCountEl) totalCountEl.textContent = this.currentImages.length.toString();
+
+      // 重置变换
+      this.resetZoom();
+    }
+
+    nextImage() {
+      if (this.currentIndex < this.currentImages.length - 1) {
+        this.currentIndex++;
+        this.loadImage(this.currentIndex);
+      }
+    }
+
+    previousImage() {
+      if (this.currentIndex > 0) {
+        this.currentIndex--;
+        this.loadImage(this.currentIndex);
+      }
+    }
+
+    zoomIn() {
+      this.scale = Math.min(this.scale + 0.2, 4);
+      this.updateTransform();
+    }
+
+    zoomOut() {
+      this.scale = Math.max(this.scale - 0.2, 0.5);
+      this.updateTransform();
+    }
+
+    resetZoom() {
+      this.scale = 1;
+      this.translateX = 0;
+      this.translateY = 0;
+      this.updateTransform();
+    }
+
+    updateTransform() {
+      if (this.image) {
+        this.image.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+      }
+    }
+
+    // 公共方法：禁用特定图片的预览功能
+    disablePreview(img: HTMLImageElement) {
+      img.removeAttribute('data-preview-enabled');
+      img.style.cursor = '';
+      // 移除事件监听器需要保存引用
+      const clickHandler = (e: Event) => {
+        e.preventDefault();
+        this.openPreview(img);
+      };
+      img.removeEventListener('click', clickHandler);
+    }
+
+    // 公共方法：启用特定图片的预览功能
+    enablePreview(img: HTMLImageElement) {
+      this.addPreviewToImage(img);
+    }
+  }
+
+  // 初始化图片预览管理器
+  const imagePreviewManager = new ImagePreviewManager();
+
+  // 导出到全局，方便其他组件调用
+  (window as any).imagePreviewManager = imagePreviewManager;
+
+  // 声明全局类型
+  declare global {
+    interface Window {
+      imagePreviewManager: ImagePreviewManager;
+    }
+  }
+</script>
+
+<style>
+  .image-preview-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+  }
+
+  .image-preview-overlay {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .preview-image {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    cursor: grab;
+    transition: transform 0.1s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  .preview-image:active {
+    cursor: grabbing;
+  }
+
+  .preview-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10000;
+  }
+
+  .preview-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .preview-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .preview-btn:active {
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .preview-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 16px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+  }
+
+  /* 移动端优化 */
+  @media (max-width: 768px) {
+    .preview-controls {
+      top: 10px;
+      right: 10px;
+      gap: 8px;
+    }
+
+    .preview-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+    }
+
+    .preview-counter {
+      bottom: 10px;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+
+    .preview-image {
+      max-width: 95%;
+      max-height: 95%;
+    }
+  }
+
+  /* 图片悬停效果 */
+  :global(img[data-preview-enabled="true"]:hover) {
+    opacity: 0.9;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+  }
+
+  /* 加载动画 */
+  .preview-image[src=""] {
+    opacity: 0;
+  }
+
+  .preview-image:not([src=""]) {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+</style>

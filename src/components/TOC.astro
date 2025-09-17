@@ -1,0 +1,369 @@
+---
+import type { MarkdownHeading } from "astro";
+
+interface Props {
+  class?: string;
+  headings: MarkdownHeading[];
+}
+
+const { headings = [], class: className } = Astro.props;
+const minDepth = Math.min(...headings.map((h) => h.depth));
+const maxLevel = 3;
+
+// 构建嵌套的 TOC 结构
+function buildTocTree(headings: MarkdownHeading[]) {
+  const filteredHeadings = headings.filter(
+    (h) => h.depth < minDepth + maxLevel,
+  );
+  const result: (MarkdownHeading & { children: typeof result })[] = [];
+  const stack: { node: (typeof result)[0]; depth: number }[] = [];
+
+  for (const heading of filteredHeadings) {
+    const node = { ...heading, children: [] };
+
+    while (stack.length > 0 && stack[stack.length - 1].depth >= heading.depth) {
+      stack.pop();
+    }
+
+    if (stack.length === 0) {
+      result.push(node);
+    } else {
+      stack[stack.length - 1].node.children.push(node);
+    }
+
+    stack.push({ node, depth: heading.depth });
+  }
+
+  return result;
+}
+
+const tocTree = buildTocTree(headings);
+---
+
+<div id="toc" class:list={["toc-card", className]}>
+  <div class="toc-header">
+    <h3 class="toc-title">📋 目录</h3>
+  </div>
+  <div class="toc-content">
+    {
+      tocTree.length > 0 ? (
+        <ul class="toc-list">
+          {tocTree.map((heading) => (
+            <li class="toc-item">
+              <a
+                class={`toc-link level-${heading.depth - minDepth + 1}`}
+                href={`#${heading.slug}`}
+              >
+                {heading.text}
+              </a>
+              {heading.children.length > 0 && (
+                <ul class="toc-sublist">
+                  {heading.children.map((child) => (
+                    <li class="toc-item">
+                      <a
+                        class={`toc-link level-${child.depth - minDepth + 1}`}
+                        href={`#${child.slug}`}
+                      >
+                        {child.text}
+                      </a>
+                      {child.children.length > 0 && (
+                        <ul class="toc-sublist">
+                          {child.children.map((grandChild) => (
+                            <li class="toc-item">
+                              <a
+                                class={`toc-link level-${grandChild.depth - minDepth + 1}`}
+                                href={`#${grandChild.slug}`}
+                              >
+                                {grandChild.text}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="toc-empty">本文章暂无目录</p>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .toc-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--blog-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--blog-shadow-1);
+    transition: var(--blog-transition);
+    margin-bottom: 2rem;
+  }
+
+  .toc-card:hover {
+    box-shadow: var(--blog-shadow-2);
+  }
+
+  .toc-header {
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.5rem;
+  }
+
+  .toc-title {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .toc-content {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+  }
+
+  /* 自定义滚动条 */
+  .toc-content::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .toc-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .toc-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+  }
+
+  .toc-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+  }
+
+  .toc-list {
+    list-style: none !important;
+    padding: 0;
+    margin: 0;
+  }
+
+  .toc-sublist {
+    list-style: none !important;
+    padding: 0;
+    margin: 0;
+    padding-left: 1rem;
+  }
+
+  .toc-item {
+    margin: 0;
+    list-style: none !important;
+  }
+
+  .toc-item::before {
+    display: none !important;
+  }
+
+  .toc-item::marker {
+    display: none !important;
+  }
+
+  .toc-link {
+    display: block;
+    padding: 0.5rem 1.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    transition: var(--blog-transition);
+    position: relative;
+  }
+
+  .toc-link::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--brand-primary);
+    opacity: 0;
+    transition: var(--blog-transition);
+  }
+
+  .toc-link:hover {
+    color: var(--brand-primary);
+    background: var(--bg-soft);
+  }
+
+  .toc-link:hover::before {
+    opacity: 1;
+  }
+
+  .toc-link.active {
+    color: var(--brand-primary);
+    background: var(--bg-soft);
+    font-weight: 500;
+  }
+
+  .toc-link.active::before {
+    opacity: 1;
+  }
+
+  /* 层级样式 */
+  .toc-link.level-1 {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .toc-link.level-2 {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .toc-link.level-3 {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+
+  .toc-empty {
+    padding: 1rem 1.5rem;
+    margin: 0;
+    color: var(--text-tertiary);
+    font-style: italic;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .toc-header {
+      padding: 0.75rem 1rem;
+    }
+
+    .toc-title {
+      font-size: 0.8rem;
+    }
+
+    .toc-content {
+      max-height: 300px;
+    }
+
+    .toc-link {
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+    }
+
+    .toc-link::before {
+      width: 2px;
+    }
+
+    .toc-sublist {
+      padding-left: 0.75rem;
+    }
+
+    .toc-link.level-2 {
+      font-size: 0.75rem;
+    }
+
+    .toc-link.level-3 {
+      font-size: 0.7rem;
+    }
+  }
+</style>
+
+<script>
+  // 添加滚动监听，高亮当前章节并自动滚动目录
+  function initTOCScrollListener() {
+    const tocLinks = document.querySelectorAll(".toc-link");
+    const headings = document.querySelectorAll(
+      ".prose h2, .prose h3, .prose h4, .prose h5, .prose h6",
+    );
+    const tocContent = document.querySelector(".toc-content");
+
+    if (tocLinks.length === 0 || headings.length === 0 || !tocContent) return;
+
+    // 为TOC链接添加平滑滚动
+    tocLinks.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        if (href) {
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        }
+      });
+    });
+
+    let ticking = false;
+
+    function updateActiveTOC() {
+      if (ticking) return;
+      ticking = true;
+
+      requestAnimationFrame(() => {
+        let current = "";
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+
+        headings.forEach((heading) => {
+          const rect = heading.getBoundingClientRect();
+          const elementTop = scrollTop + rect.top;
+
+          if (elementTop <= scrollTop + 200) {
+            current = heading.id;
+          }
+        });
+
+        let activeLink: Element | null = null;
+        tocLinks.forEach((link) => {
+          link.classList.remove("active");
+          if (link.getAttribute("href") === `#${current}`) {
+            link.classList.add("active");
+            activeLink = link;
+          }
+        });
+
+        // 自动滚动目录，使当前选中的标题位于目录顶部
+        if (activeLink && tocContent) {
+          const tocContentRect = tocContent.getBoundingClientRect();
+          const activeLinkRect = (activeLink as HTMLElement).getBoundingClientRect();
+          
+          // 计算需要滚动的距离
+          const scrollOffset = activeLinkRect.top - tocContentRect.top;
+          
+          // 平滑滚动到目标位置
+          tocContent.scrollTo({
+            top: tocContent.scrollTop + scrollOffset,
+            behavior: 'smooth'
+          });
+        }
+
+        ticking = false;
+      });
+    }
+
+    // 使用节流优化滚动性能
+    window.addEventListener("scroll", updateActiveTOC, { passive: true });
+    updateActiveTOC();
+  }
+
+  // 确保在页面完全加载后初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", initTOCScrollListener);
+  } else {
+    // 如果页面已经加载完成，直接执行
+    initTOCScrollListener();
+  }
+</script>

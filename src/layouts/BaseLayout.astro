@@ -1,0 +1,427 @@
+---
+import { getAssetPath } from '../utils/pathUtils';
+import { profileConfig } from '@site.config';
+
+export interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  noindex?: boolean;
+}
+
+const { title, description = '基于BIT-SE样式的Astro博客主题', image, noindex = false } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href={getAssetPath(profileConfig.favicon)} />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Primary Meta Tags -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {image && <meta property="og:image" content={new URL(image, Astro.url)} />}
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    {image && <meta property="twitter:image" content={new URL(image, Astro.url)} />}
+
+    <!-- Robots -->
+    {noindex && <meta name="robots" content="noindex" />}
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Preload avatar -->
+    <link rel="preload" href={getAssetPath("/imgs/avatar.jpg")} as="image" type="image/jpeg">
+
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-Tv5i2X6pzTx6P3pEfJGnSxzNPxvE2mfO7tYd+0m2QGFJ1kq0c+7f3bV3EV8wKJlN" crossorigin="anonymous">
+
+    <!-- 高质量数学字体支持 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Libertinus Math - 现代高质量数学字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Libertinus+Serif:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+
+    <!-- STIX Two Math - OpenType数学字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=STIX+Two+Math&display=swap" rel="stylesheet">
+
+    <!-- Fira Math - 现代无衬线数学字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Math&display=swap" rel="stylesheet">
+
+    <!-- 本地字体资源 -->
+    <style>
+      @font-face {
+        font-family: 'Libertinus Math';
+        src: url('https://cdn.jsdelivr.net/npm/libertinus-fonts@7.040/static/OTF/LibertinusMath-Regular.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'TeX Gyre Termes Math';
+        src: url('https://github.com/ArtifexSoftware/urw-base35-fonts/raw/master/fonts/TeXGyreTermes-Regular.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      /* MathML 原生支持样式 */
+      math {
+        font-family: 'Libertinus Math', 'STIX Two Math', 'TeX Gyre Termes Math', 'Cambria Math', serif !important;
+        font-size: 1.1em;
+        line-height: 1.6;
+        font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+
+      /* MathML 块级公式 */
+      math[display="block"] {
+        display: block;
+        text-align: center;
+        margin: 1.5em 0;
+        font-size: 1.2em;
+      }
+
+      /* MathML 行内公式 */
+      math:not([display="block"]) {
+        display: inline;
+        vertical-align: baseline;
+      }
+
+      /* MathML 分数 */
+      mfrac {
+        font-size: 0.9em;
+      }
+
+      /* MathML 上下标 */
+      msup, msub, msubsup {
+        font-size: 0.8em;
+      }
+
+      /* MathML 根号 */
+      msqrt, mroot {
+        font-size: 1em;
+      }
+
+      /* MathML 运算符 */
+      mo {
+        font-family: 'Libertinus Math', 'STIX Two Math', serif;
+        font-size: 1.1em;
+      }
+
+      /* MathML 标识符（变量） */
+      mi {
+        font-style: italic;
+        font-family: 'Libertinus Math', 'STIX Two Math', serif;
+      }
+
+      /* MathML 数字 */
+      mn {
+        font-style: normal;
+        font-family: 'Libertinus Math', 'STIX Two Math', serif;
+      }
+    </style>
+
+    <!-- Additional head content -->
+    <slot name="head" />
+  </head>
+
+  <body>
+    <slot />
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="back-to-top" aria-label="返回顶部">
+      <span class="back-to-top-icon">↑</span>
+    </button>
+
+    <!-- 全局样式 -->
+    <style>
+      html {
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+
+      main {
+        flex: 1;
+      }
+
+      /* 返回顶部按钮样式 */
+      .back-to-top {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 3rem;
+        height: 3rem;
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        box-shadow: var(--blog-shadow-2);
+        transition: var(--blog-transition);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px);
+        z-index: 100;
+      }
+
+      .back-to-top.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .back-to-top:hover {
+        background: var(--brand-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--blog-shadow-3);
+      }
+
+      .back-to-top:active {
+        transform: translateY(0);
+      }
+
+      .back-to-top-icon {
+        transition: transform 0.2s ease;
+      }
+
+      .back-to-top:hover .back-to-top-icon {
+        transform: translateY(-1px);
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 768px) {
+        .back-to-top {
+          bottom: 1.5rem;
+          right: 1.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+          font-size: 1rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .back-to-top {
+          bottom: 1rem;
+          right: 1rem;
+          width: 2.25rem;
+          height: 2.25rem;
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+
+    <!-- 代码块复制功能脚本 -->
+    <script>
+      // 代码块复制功能
+      function initCodeCopyButtons() {
+        // 为所有代码块添加复制按钮
+        const codeBlocks = document.querySelectorAll('pre');
+
+        codeBlocks.forEach((pre) => {
+          // 跳过已经有复制按钮的代码块
+          if (pre.querySelector('.code-copy-btn')) return;
+
+          // 创建复制按钮
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'code-copy-btn';
+          copyBtn.setAttribute('aria-label', '复制代码');
+          copyBtn.innerHTML = `
+            <svg class="copy-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+            </svg>
+            <span class="copy-text">复制</span>
+          `;
+
+          // 添加点击事件
+          copyBtn.addEventListener('click', async () => {
+            try {
+              // 获取代码内容
+              const codeElement = pre.querySelector('code');
+              const textToCopy = codeElement ? codeElement.textContent || '' : pre.textContent || '';
+
+              // 复制到剪贴板
+              await navigator.clipboard.writeText(textToCopy);
+
+              // 更新按钮状态
+              const copyText = copyBtn.querySelector('.copy-text');
+              const originalText = copyText?.textContent || '复制';
+
+              copyBtn.classList.add('copied');
+              if (copyText) copyText.textContent = '已复制';
+
+              // 2秒后恢复原状态
+              setTimeout(() => {
+                copyBtn.classList.remove('copied');
+                if (copyText) copyText.textContent = originalText;
+              }, 2000);
+
+            } catch (err) {
+              console.error('复制失败:', err);
+
+              // 降级方案：使用传统的选择和复制方法
+              const range = document.createRange();
+              const codeElement = pre.querySelector('code') || pre;
+              range.selectNodeContents(codeElement);
+
+              const selection = window.getSelection();
+              if (selection) {
+                selection.removeAllRanges();
+                selection.addRange(range);
+              }
+
+              try {
+                document.execCommand('copy');
+                if (selection) selection.removeAllRanges();
+
+                const copyText = copyBtn.querySelector('.copy-text');
+                copyBtn.classList.add('copied');
+                if (copyText) copyText.textContent = '已复制';
+
+                setTimeout(() => {
+                  copyBtn.classList.remove('copied');
+                  if (copyText) copyText.textContent = '复制';
+                }, 2000);
+              } catch (fallbackErr) {
+                console.error('降级复制方案也失败:', fallbackErr);
+                alert('复制失败，请手动选择并复制代码');
+              }
+            }
+          });
+
+          // 将按钮添加到代码块
+          pre.appendChild(copyBtn);
+        });
+      }
+
+      // 页面加载完成后初始化复制按钮
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCodeCopyButtons);
+      } else {
+        initCodeCopyButtons();
+      }
+
+      // 对于动态加载的内容，可以提供重新初始化的方法
+      (window as any).initCodeCopyButtons = initCodeCopyButtons;
+
+      // 行内代码点击复制功能
+      function initInlineCodeCopy() {
+        const inlineCodes = document.querySelectorAll(':not(pre) > code');
+
+        inlineCodes.forEach(code => {
+          // 跳过已经有事件监听器的代码块
+          if (code.hasAttribute('data-copy-initialized')) return;
+
+          code.addEventListener('click', async (event) => {
+            const target = event.currentTarget;
+
+            try {
+              // 复制文本到剪贴板
+              await navigator.clipboard.writeText(target.textContent || '');
+
+              // 添加复制成功样式
+              target.classList.add('copied');
+
+              // 2秒后恢复原始状态
+              setTimeout(() => {
+                target.classList.remove('copied');
+              }, 2000);
+
+            } catch (err) {
+              // 如果剪贴板API不可用，使用传统方法
+              const textArea = document.createElement('textarea');
+              textArea.value = target.textContent || '';
+              document.body.appendChild(textArea);
+              textArea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textArea);
+
+              // 显示复制成功样式
+              target.classList.add('copied');
+              setTimeout(() => {
+                target.classList.remove('copied');
+              }, 2000);
+            }
+          });
+
+          // 标记为已初始化
+          code.setAttribute('data-copy-initialized', 'true');
+        });
+      }
+
+      // 页面加载完成后初始化行内代码复制功能
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initInlineCodeCopy);
+      } else {
+        initInlineCodeCopy();
+      }
+
+      // 对于动态加载的内容，可以提供重新初始化的方法
+      (window as any).initInlineCodeCopy = initInlineCodeCopy;
+
+      // 返回顶部功能
+      function initBackToTop() {
+        const backToTopButton = document.getElementById('back-to-top');
+
+        if (!backToTopButton) return;
+
+        // 监听滚动事件
+        window.addEventListener('scroll', () => {
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+          if (scrollTop > 300) {
+            backToTopButton.classList.add('show');
+          } else {
+            backToTopButton.classList.remove('show');
+          }
+        });
+
+        // 点击返回顶部
+        backToTopButton.addEventListener('click', () => {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        });
+      }
+
+      // 页面加载完成后初始化返回顶部功能
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initBackToTop);
+      } else {
+        initBackToTop();
+      }
+    </script>
+  </body>
+</html>

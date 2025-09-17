@@ -1,0 +1,551 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import ArticleList from "../components/ArticleList.astro";
+import Navigation from "../components/Navigation.astro";
+import { getCollection } from "astro:content";
+import { profileConfig } from "@site.config";
+import { getAssetPath } from "../utils/pathUtils";
+import { getSvgContents } from "../utils/svgUtils";
+import "../styles/global.css";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  hero?: {
+    title?: string;
+    subtitle?: string;
+    avatar?: string;
+  };
+  showRecentPosts?: boolean;
+  recentPostsLimit?: number;
+}
+
+const {
+  title = "首页 - 我的博客",
+  description,
+  hero = {
+    avatar: "/imgs/avatar.jpg"
+  },
+  showRecentPosts = true,
+  recentPostsLimit = 6
+} = Astro.props;
+
+// 获取博客文章数据
+const allPosts = await getCollection("blog");
+const visiblePosts = allPosts.filter((post) => !post.data.hidden);
+const recentPosts = visiblePosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, recentPostsLimit);
+
+const allTags = [...new Set(visiblePosts.flatMap((post) => post.data.tags || []))];
+
+// 热门标签
+const tagCounts = allTags.reduce(
+  (acc, tag) => {
+    acc[tag] = visiblePosts.filter((post) =>
+      (post.data.tags || []).includes(tag),
+    ).length;
+    return acc;
+  },
+  {} as Record<string, number>,
+);
+
+// 根据配置获取 SVG 内容
+const svgContents = getSvgContents(profileConfig.socialLinks);
+---
+
+<BaseLayout title={title} description={description}>
+  <Navigation />
+  <main>
+    <div class="blog-home">
+      <!-- 博客头部横幅 -->
+      <section class="hero-section">
+        <div class="hero-content">
+          <div class="hero-avatar">
+            <img
+              src={getAssetPath(hero?.avatar || "/imgs/avatar.jpg")}
+              alt="博主头像"
+              class="avatar-image"
+              loading="eager"
+              onerror={`this.src='${getAssetPath("/imgs/default-avatar.svg")}'`}
+            />
+          </div>
+          <h1 class="hero-title">{hero?.title}</h1>
+          <p class="hero-subtitle">{hero?.subtitle}</p>
+
+          <!-- 社交链接 -->
+          <div class="hero-social">
+            {
+              profileConfig.socialLinks.map((link) => (
+                <a
+                  href={link.url}
+                  title={link.name}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="social-link"
+                >
+                  <span class="social-icon">
+                    {link.icon.startsWith('http') || link.icon.startsWith('/') ? (
+                      <div class="social-icon-svg" set:html={svgContents[link.icon]} />
+                    ) : (
+                      link.icon
+                    )}
+                  </span>
+                  {link.name}
+                </a>
+              ))
+            }
+          </div>
+        </div>
+        <div class="hero-decoration">
+          <div class="decoration-circle circle-1"></div>
+          <div class="decoration-circle circle-2"></div>
+          <div class="decoration-circle circle-3"></div>
+        </div>
+      </section>
+
+      <!-- 最新文章 -->
+      {showRecentPosts && (
+        <ArticleList
+          posts={recentPosts}
+          title="📝 最新文章"
+          limit={recentPostsLimit}
+          showViewAll={true}
+          viewAllLink="/blog"
+          showHeroImage={true}
+        />
+      )}
+
+      <!-- 自定义内容插槽 -->
+      <slot />
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .blog-home {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    min-height: calc(100vh - 4rem);
+    padding-bottom: 2rem;
+  }
+
+  /* 英雄区域 */
+  .hero-section {
+    position: relative;
+    text-align: center;
+    padding: 4rem 2rem;
+    margin-bottom: 4rem;
+    background: linear-gradient(
+      135deg,
+      var(--bg-soft) 0%,
+      var(--bg-primary) 100%
+    );
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-avatar {
+    margin-bottom: 2rem;
+  }
+
+  .avatar-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--brand-primary);
+    box-shadow: var(--blog-shadow-3);
+    transition: transform 0.3s ease;
+    object-fit: cover;
+  }
+
+  .avatar-image:hover {
+    transform: scale(1.05);
+  }
+
+  .hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--brand-primary);
+    margin-bottom: 1rem;
+    padding: 0.2rem 0;
+    min-height: 1.5em;
+    display: inline-block;
+    position: relative;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+    display: flex;
+    justify-content: center;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .hero-social {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .social-link:hover {
+    background: var(--brand-primary);
+    color: white;
+    border-color: var(--brand-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--blog-shadow-2);
+  }
+
+  .social-icon {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .social-icon-svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 使用currentColor，初始颜色为text-primary */
+    color: var(--text-primary);
+    transition: var(--blog-transition);
+  }
+
+  .social-icon-svg svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+    stroke: currentColor;
+  }
+
+  .social-link:hover .social-icon-svg {
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .hero-decoration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .decoration-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(
+      135deg,
+      var(--brand-light),
+      var(--brand-primary)
+    );
+    opacity: 0.05;
+  }
+
+  .circle-1 {
+    width: 200px;
+    height: 200px;
+    top: -100px;
+    right: -100px;
+  }
+
+  .circle-2 {
+    width: 150px;
+    height: 150px;
+    bottom: -75px;
+    left: -75px;
+  }
+
+  .circle-3 {
+    width: 100px;
+    height: 100px;
+    top: 50%;
+    right: 10%;
+    transform: translateY(-50%);
+  }
+
+  /* 通用区域样式 */
+  section {
+    margin-bottom: 4rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .title-icon {
+    font-size: 1.5rem;
+  }
+
+  .view-all-link {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .view-all-link:hover {
+    color: var(--brand-dark);
+    transform: translateX(4px);
+  }
+
+  .arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .view-all-link:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  /* 标签云 */
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg-soft);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+  }
+
+  .tag-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+
+  .tag-item:hover {
+    background: var(--brand-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--blog-shadow-2);
+  }
+
+  .tag-count {
+    background: var(--bg-soft);
+    padding: 0.2rem 0.4rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* 分类 */
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .category-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--blog-shadow-3);
+    border-color: var(--brand-primary);
+  }
+
+  .category-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.8;
+  }
+
+  .category-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .category-count {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .blog-home {
+      padding: 0 0.5rem;
+    }
+
+    .hero-section {
+      padding: 3rem 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero-title {
+      font-size: 2rem;
+      line-height: 1.4;
+      padding: 0.15rem 0;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    .hero-stats {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .hero-social {
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .section-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .posts-list {
+      gap: 1rem;
+    }
+
+    .post-item {
+      padding: 1rem 1.5rem;
+    }
+
+    .post-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .post-meta {
+      gap: 1rem;
+    }
+
+    .categories-grid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+
+    .category-card {
+      padding: 1.5rem 1rem;
+    }
+
+    .tag-cloud {
+      gap: 0.75rem;
+      padding: 1.5rem;
+    }
+
+    .post-footer {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .post-tags {
+      gap: 0.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title {
+      font-size: 1.75rem;
+      line-height: 1.4;
+      padding: 0.1rem 0;
+    }
+
+    .avatar-image {
+      width: 100px;
+      height: 100px;
+    }
+
+    .hero-stats {
+      gap: 1rem;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+    }
+  }
+</style>

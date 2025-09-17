@@ -1,0 +1,450 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { getAssetPath } from '../utils/pathUtils';
+import { markdown } from '@astropub/md';
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description?: string;
+  hero?: {
+    title: string;
+    subtitle?: string;
+    description?: string | string[];
+  };
+  sections?: Array<{
+    id: string;
+    title: string;
+    icon?: string;
+    type: 'text' | 'friends';
+    content?: any;
+    renderedContent?: string;
+  }>;
+}
+
+const { title, description, hero, sections } = Astro.props;
+
+// 预处理 hero description 和 subtitle
+let renderedHeroDescription = null;
+let renderedHeroSubtitle = null;
+
+if (hero?.description) {
+  if (Array.isArray(hero.description)) {
+    renderedHeroDescription = await Promise.all(
+      hero.description.map(async (desc) => await markdown(desc))
+    );
+  } else {
+    renderedHeroDescription = await markdown(hero.description);
+  }
+}
+
+if (hero?.subtitle) {
+  renderedHeroSubtitle = await markdown(hero.subtitle);
+}
+
+// 预处理 sections，渲染 Markdown 内容
+const processedSections = await Promise.all(
+  sections?.map(async (section) => {
+    const processedSection = { ...section };
+
+    // 处理 text 类型的 content
+    if (section.type === 'text' && section.content) {
+      const content = typeof section.content === 'string'
+        ? section.content
+        : section.content.text;
+      if (content) {
+        processedSection.renderedContent = await markdown(content);
+      }
+    }
+
+    // 处理 friends 类型的 friends description
+    if (section.type === 'friends' && section.content?.friends) {
+      processedSection.content = {
+        ...section.content,
+        friends: await Promise.all(
+          section.content.friends.map(async (friend: any) => {
+            if (friend.description) {
+              return {
+                ...friend,
+                renderedDescription: await markdown(friend.description)
+              };
+            }
+            return friend;
+          })
+        )
+      };
+    }
+
+    return processedSection;
+  }) || []
+);
+---
+
+<BaseLayout title={title} description={description}>
+  <slot name="navigation" />
+  <div class="friends-content">
+    <div class="container">
+      <!-- Hero Section -->
+      {hero && (
+        <section class="hero-section">
+          <div class="hero-content">
+            <h1 class="hero-title">{hero.title}</h1>
+            {renderedHeroSubtitle && (
+              <div class="hero-subtitle" set:html={renderedHeroSubtitle} />
+            )}
+            {renderedHeroDescription && (
+              <div class="hero-description">
+                {Array.isArray(renderedHeroDescription) ? (
+                  renderedHeroDescription.map((desc) => <div set:html={desc} />)
+                ) : (
+                  <div set:html={renderedHeroDescription} />
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      <!-- Dynamic Sections -->
+      {processedSections?.map((section) => (
+        <section class={`${section.type}-section`}>
+          <h2 class="section-title">
+            {section.icon && <span class="title-icon">{section.icon}</span>}
+            {section.title}
+          </h2>
+
+          {section.type === 'text' && section.renderedContent && (
+            <div class="text-content">
+              <div set:html={section.renderedContent} />
+            </div>
+          )}
+
+          {section.type === 'friends' && section.content && (
+            <div class="friends-grid">
+              {section.content.friends?.map((friend: any) => (
+                <a
+                  href={friend.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="friend-card"
+                >
+                  <div class="friend-avatar">
+                    <img
+                      src={getAssetPath(friend.avatar)}
+                      alt={`${friend.name} 头像`}
+                      loading="lazy"
+                      onerror={`this.src='${getAssetPath("/imgs/default-avatar.svg")}'`}
+                    />
+                  </div>
+                  <div class="friend-info">
+                    <h3 class="friend-name">{friend.name}</h3>
+                    {friend.renderedDescription && (
+                      <div class="friend-description" set:html={friend.renderedDescription} />
+                    )}
+                    <div class="friend-tags">
+                      {friend.tags.map((tag: string) => (
+                        <span class="friend-tag">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div class="friend-link-icon">🔗</div>
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+      ))}
+
+      <!-- Markdown content slot -->
+      <slot />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .friends-content {
+    padding: 2rem 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    text-align: center;
+    padding: 3rem 0;
+    margin-bottom: 4rem;
+    background: linear-gradient(135deg, var(--bg-soft) 0%, var(--bg-primary) 100%);
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+    margin-bottom: 1rem;
+    display: inline-block;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .hero-description {
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .hero-description p {
+    margin: 0.5rem 0;
+  }
+
+  /* Section Styles */
+  section {
+    margin-bottom: 4rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .title-icon {
+    font-size: 1.8rem;
+  }
+
+  /* Text Content */
+  .text-content {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--blog-radius-md);
+    padding: 2rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .text-content a {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .text-content a:hover {
+    text-decoration: underline;
+  }
+
+  .text-content p {
+    margin: 1rem 0;
+  }
+
+  /* Friends Grid */
+  .friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+  }
+
+  .friend-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--blog-radius-md);
+    padding: 2rem;
+    text-decoration: none;
+    transition: var(--blog-transition);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .friend-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--blog-shadow-2);
+    border-color: var(--brand-primary);
+  }
+
+  .friend-card:hover .friend-link-icon {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  .friend-avatar {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--brand-primary);
+    position: relative;
+  }
+
+  .friend-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--blog-transition);
+  }
+
+  .friend-card:hover .friend-avatar img {
+    transform: scale(1.1);
+  }
+
+  .friend-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .friend-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .friend-description {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .friend-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .friend-tag {
+    background: var(--bg-soft);
+    color: var(--brand-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid var(--brand-primary);
+  }
+
+  .friend-link-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.2rem;
+    opacity: 0.3;
+    transition: var(--blog-transition);
+  }
+
+  /* Markdown Content */
+  .markdown-content {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--blog-radius-md);
+    padding: 2rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .markdown-content h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 2rem 0 1rem 0;
+  }
+
+  .markdown-content h2:first-child {
+    margin-top: 0;
+  }
+
+  .markdown-content p {
+    margin: 1rem 0;
+  }
+
+  .markdown-content a {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .markdown-content a:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+      text-align: left;
+      justify-content: flex-start;
+    }
+
+    .friends-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .friend-card {
+      padding: 1.5rem;
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    .friend-avatar {
+      width: 60px;
+      height: 60px;
+    }
+
+    .friend-name {
+      white-space: normal;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title {
+      font-size: 1.75rem;
+    }
+
+    .friend-card {
+      padding: 1rem;
+    }
+
+    .friend-avatar {
+      width: 50px;
+      height: 50px;
+    }
+  }
+</style>

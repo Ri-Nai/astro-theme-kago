@@ -1,0 +1,515 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import ArticleList from '../components/ArticleList.astro';
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description: string;
+  posts: any[];
+  allTags: string[];
+  allCategories: string[];
+  tagCounts: Record<string, number>;
+  categoryStats: Array<{ name: string; count: number }>;
+}
+
+const { 
+  title, 
+  description, 
+  posts, 
+  allTags, 
+  allCategories, 
+  tagCounts, 
+  categoryStats 
+} = Astro.props;
+
+const popularTags = Object.entries(tagCounts)
+  .sort(([,a], [,b]) => b - a)
+  .map(([name, count]) => ({ name, count }));
+---
+
+<BaseLayout title={title} description={description}>
+  <slot name="navigation" />
+  <main>
+    <div class="blog-container">
+      <!-- 博客标题 -->
+      <div class="blog-header">
+        <h1 class="blog-title">📝 文章列表</h1>
+        <p class="blog-description">分享技术心得，记录学习历程</p>
+      </div>
+
+      <!-- 统计信息 -->
+      <div class="stats-section">
+        <div class="stat-card">
+          <div class="stat-number">{posts.length}</div>
+          <div class="stat-label">总文章</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{allTags.length}</div>
+          <div class="stat-label">标签数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{allCategories.length}</div>
+          <div class="stat-label">分类数</div>
+        </div>
+      </div>
+
+      <!-- 标签筛选器 -->
+      <div class="tags-section">
+        <h3 class="section-title">🏷️ 标签筛选</h3>
+        <div class="tag-cloud">
+          <button class="tag-button active" data-filter="all">
+            全部 <span class="tag-count">{posts.length}</span>
+          </button>
+          {popularTags.map((tag) => (
+            <button class="tag-button" data-filter={tag.name}>
+              {tag.name} <span class="tag-count">{tag.count}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- 分类筛选器 -->
+      <div class="categories-section">
+        <h3 class="section-title">📂 分类筛选</h3>
+        <div class="category-cloud">
+          <button class="category-button active" data-filter="all">
+            全部 <span class="category-count">{posts.length}</span>
+          </button>
+          {categoryStats.map((category) => (
+            <button class="category-button" data-filter={category.name}>
+              {category.name} <span class="category-count">{category.count}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- 文章列表 -->
+      <div id="articles-container">
+        <ArticleList
+          posts={posts}
+          showTitle={false}
+          showViewAll={false}
+          showHeroImage={true}
+          enableFiltering={true}
+        />
+      </div>
+
+      <!-- 空状态 -->
+      <div id="empty-state" class="empty-state" style="display: none;">
+        <div class="empty-illustration">
+          <div class="empty-icon">📭</div>
+          <h3 class="empty-title">暂无匹配的文章</h3>
+          <p class="empty-description">
+            尝试调整筛选条件或
+            <button id="clear-filters" class="empty-link">清空所有筛选</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .blog-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    min-height: calc(100vh - 4rem);
+    padding-bottom: 2rem;
+  }
+
+  /* 博客头部 */
+  .blog-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .blog-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--brand-primary);
+    margin-bottom: 1rem;
+    padding: 0.2rem 0;
+    min-height: 1.5em;
+    display: inline-block;
+  }
+
+  .blog-description {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 300;
+  }
+
+  /* 统计信息 */
+  .stats-section {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .stat-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    min-width: 120px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--blog-shadow-3);
+    border-color: var(--brand-primary);
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* 分类和标签部分 */
+  .tags-section,
+  .categories-section {
+    margin-bottom: 3rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+  }
+
+  .tag-cloud,
+  .category-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tag-button,
+  .category-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .tag-button:hover,
+  .category-button:hover {
+    background: var(--brand-lighter);
+    border-color: var(--brand-primary);
+    transform: translateY(-2px);
+  }
+
+  .tag-button.active,
+  .category-button.active {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: white;
+  }
+
+  .tag-count,
+  .category-count {
+    background: var(--bg-mute);
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tag-button.active .tag-count,
+  .category-button.active .category-count {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* 空状态 */
+  .empty-state {
+    text-align: center;
+    padding: 6rem 2rem;
+  }
+
+  .empty-illustration {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .empty-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+  }
+
+  .empty-title {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .empty-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .empty-link {
+    background: none;
+    border: none;
+    color: var(--brand-primary);
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: inherit;
+  }
+
+  .empty-link:hover {
+    color: var(--brand-dark);
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .blog-container {
+      padding: 1rem 0.5rem;
+    }
+
+    .blog-title {
+      font-size: 2rem;
+      line-height: 1.4;
+      padding: 0.15rem 0;
+    }
+
+    .stats-section {
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .stat-card {
+      min-width: 100px;
+    }
+
+    .tag-cloud,
+    .category-cloud {
+      gap: 0.5rem;
+    }
+
+    .tag-button,
+    .category-button {
+      font-size: 0.8rem;
+      padding: 0.5rem 1rem;
+    }
+  }
+</style>
+
+<script>
+  // 筛选功能
+  let selectedTags: string[] = [];
+  let selectedCategories: string[] = [];
+
+  const articleCards = document.querySelectorAll('#articles-container .article-item') as NodeListOf<HTMLElement>;
+  const tagButtons = document.querySelectorAll('.tag-button') as NodeListOf<HTMLButtonElement>;
+  const categoryButtons = document.querySelectorAll('.category-button') as NodeListOf<HTMLButtonElement>;
+  const emptyState = document.getElementById('empty-state') as HTMLElement;
+  const clearFiltersBtn = document.getElementById('clear-filters') as HTMLButtonElement;
+
+  function filterArticles() {
+    let visibleCount = 0;
+
+    articleCards.forEach(card => {
+      const cardTags = card.getAttribute('data-tags')?.split(',') || [];
+      const cardCategory = card.getAttribute('data-category') || '';
+
+      let showCard = true;
+
+      // 标签筛选
+      if (selectedTags.length > 0 && !selectedTags.some(tag => cardTags.includes(tag))) {
+        showCard = false;
+      }
+
+      // 分类筛选
+      if (selectedCategories.length > 0 && !selectedCategories.includes(cardCategory)) {
+        showCard = false;
+      }
+
+      if (showCard) {
+        card.style.display = '';  // 恢复默认display值
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // 显示/隐藏空状态
+    if (visibleCount === 0) {
+      emptyState.style.display = 'block';
+    } else {
+      emptyState.style.display = 'none';
+    }
+  }
+
+  function clearAllFilters() {
+    selectedTags = [];
+    selectedCategories = [];
+
+    // 重置按钮状态
+    tagButtons.forEach(btn => {
+      if (btn.getAttribute('data-filter') === 'all') {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    categoryButtons.forEach(btn => {
+      if (btn.getAttribute('data-filter') === 'all') {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    filterArticles();
+  }
+
+  // 标签按钮事件
+  tagButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const filter = button.getAttribute('data-filter')!;
+
+      if (filter === 'all') {
+        selectedTags = [];
+        tagButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+      } else {
+        // 移除"全部"按钮的active状态
+        tagButtons.forEach(btn => {
+          if (btn.getAttribute('data-filter') === 'all') {
+            btn.classList.remove('active');
+          }
+        });
+
+        const index = selectedTags.indexOf(filter);
+        if (index > -1) {
+          selectedTags.splice(index, 1);
+          button.classList.remove('active');
+        } else {
+          selectedTags.push(filter);
+          button.classList.add('active');
+        }
+
+        // 如果没有选中的标签，激活"全部"按钮
+        if (selectedTags.length === 0) {
+          tagButtons.forEach(btn => {
+            if (btn.getAttribute('data-filter') === 'all') {
+              btn.classList.add('active');
+            }
+          });
+        }
+      }
+
+      filterArticles();
+    });
+  });
+
+  // 分类按钮事件
+  categoryButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const filter = button.getAttribute('data-filter')!;
+
+      if (filter === 'all') {
+        selectedCategories = [];
+        categoryButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+      } else {
+        // 移除"全部"按钮的active状态
+        categoryButtons.forEach(btn => {
+          if (btn.getAttribute('data-filter') === 'all') {
+            btn.classList.remove('active');
+          }
+        });
+
+        const index = selectedCategories.indexOf(filter);
+        if (index > -1) {
+          selectedCategories.splice(index, 1);
+          button.classList.remove('active');
+        } else {
+          selectedCategories.push(filter);
+          button.classList.add('active');
+        }
+
+        // 如果没有选中的分类，激活"全部"按钮
+        if (selectedCategories.length === 0) {
+          categoryButtons.forEach(btn => {
+            if (btn.getAttribute('data-filter') === 'all') {
+              btn.classList.add('active');
+            }
+          });
+        }
+      }
+
+      filterArticles();
+    });
+  });
+
+  // 清空筛选按钮事件
+  clearFiltersBtn?.addEventListener('click', clearAllFilters);
+
+  // 从URL参数中读取筛选条件
+  function initializeFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tagParam = urlParams.get('tag');
+    const categoryParam = urlParams.get('category');
+
+    if (tagParam) {
+      selectedTags = [tagParam];
+      tagButtons.forEach(btn => {
+        if (btn.getAttribute('data-filter') === tagParam) {
+          btn.classList.add('active');
+        } else if (btn.getAttribute('data-filter') === 'all') {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    if (categoryParam) {
+      selectedCategories = [categoryParam];
+      categoryButtons.forEach(btn => {
+        if (btn.getAttribute('data-filter') === categoryParam) {
+          btn.classList.add('active');
+        } else if (btn.getAttribute('data-filter') === 'all') {
+          btn.classList.remove('active');
+        }
+      });
+    }
+  }
+
+  // 初始化
+  initializeFromURL();
+  filterArticles();
+</script>

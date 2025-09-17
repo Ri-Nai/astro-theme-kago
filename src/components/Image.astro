@@ -1,0 +1,26 @@
+---
+import { getImagePathForAstro, getImageAlt } from '../utils/pathUtils';
+
+// Image.astro - 优化的图片组件
+export interface Props {
+  src: string;
+  alt?: string;
+  class?: string;
+  basePath?: string;
+}
+
+const { src, alt = "", class: className = "", basePath } = Astro.props;
+
+// 使用统一的图片路径处理函数
+const imageSrc = getImagePathForAstro(src, basePath, Astro.url);
+const imageAlt = getImageAlt(src, alt);
+---
+
+<!-- 生成img标签，但添加特殊标记让Gallery识别 -->
+<img
+  src={imageSrc}
+  alt={imageAlt}
+  class={`${className} image-component`}
+  loading="lazy"
+  data-image-component="true"
+/>

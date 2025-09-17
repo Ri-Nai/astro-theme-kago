@@ -409,9 +409,9 @@ const formatDate = (date: Date) => {
       }
     </style>
   )}
-  
+
   <slot name="navigation" />
-  
+
   <main>
     <article class="blog-post">
       <div class="container">
@@ -738,7 +738,7 @@ const formatDate = (date: Date) => {
     position: sticky;
     top: 120px;
     max-height: calc(100vh - 140px);
-    overflow-y: auto;
+    overflow-y: visible;
     display: flex;
     flex-direction: column;
     gap: 2rem;
@@ -1098,7 +1098,7 @@ const formatDate = (date: Date) => {
   // 为TOC链接添加平滑滚动（如果TOC组件存在的话）
   document.addEventListener('DOMContentLoaded', () => {
     const tocLinks = document.querySelectorAll('.toc-link');
-    
+
     tocLinks.forEach((link) => {
       link.addEventListener('click', (e) => {
         e.preventDefault();

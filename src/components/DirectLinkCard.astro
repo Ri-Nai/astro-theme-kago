@@ -1,0 +1,169 @@
+---
+import { getImagePathForAstro, getImageAlt } from '../utils/pathUtils';
+
+export interface Props {
+  title: string;
+  description?: string;
+  website: string;
+  image?: string;
+  basePath?: string;
+}
+
+const {
+  title,
+  description,
+  website,
+  image,
+  basePath = ""
+} = Astro.props;
+---
+
+<article class="direct-link-card">
+  <a href={website} target="_blank" rel="noopener noreferrer">
+    {image && (
+      <div class="direct-link-image">
+        <img
+          src={getImagePathForAstro(image, basePath, Astro.url)}
+          alt={getImageAlt(image, title)}
+          loading="lazy"
+        />
+      </div>
+    )}
+
+    <div class="direct-link-details">
+      <div class="direct-link-title">{title}</div>
+      <p class="direct-link-description">
+        {description || website}
+      </p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .direct-link-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--blog-radius-md);
+    overflow: hidden;
+    transition: var(--blog-transition);
+    box-shadow: var(--blog-shadow-1);
+    height: 100%;
+    max-width: 400px;
+    justify-self: center;
+
+  }
+
+  .direct-link-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--blog-shadow-2);
+    border-color: var(--brand-primary);
+  }
+
+  .direct-link-card a {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+    gap: 1rem;
+  }
+
+  .direct-link-image {
+    align-self: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--blog-radius-sm);
+    overflow: hidden;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .direct-link-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    transition: transform 0.3s ease;
+  }
+
+  .direct-link-card:hover .direct-link-image img {
+    transform: scale(1.1);
+  }
+
+  /* SVG 图标特殊处理 */
+  .direct-link-image img[src$=".svg"] {
+    object-fit: contain;
+    padding: 6px;
+  }
+
+  .direct-link-details {
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .direct-link-title {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    margin: 0 0 0.5rem 0 !important;
+    line-height: 1.3 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+  }
+
+  .direct-link-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .direct-link-card a {
+      padding: 1rem;
+      gap: 0.75rem;
+    }
+
+    .direct-link-image {
+      width: 40px;
+      height: 40px;
+    }
+
+    .direct-link-title {
+      font-size: 1rem;
+    }
+
+    .direct-link-description {
+      font-size: 0.8rem;
+      -webkit-line-clamp: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .direct-link-card a {
+      padding: 0.875rem;
+    }
+
+    .direct-link-image {
+      width: 36px;
+      height: 36px;
+    }
+  }
+</style>

@@ -26,6 +26,7 @@ const {
           src={getImagePathForAstro(image, basePath, Astro.url)}
           alt={getImageAlt(image, title)}
           loading="lazy"
+          data-no-preview="true"
         />
       </div>
     )}
@@ -48,9 +49,9 @@ const {
     transition: var(--blog-transition);
     box-shadow: var(--blog-shadow-1);
     height: 100%;
+    width: 100%;
     max-width: 400px;
     justify-self: center;
-
   }
 
   .direct-link-card:hover {

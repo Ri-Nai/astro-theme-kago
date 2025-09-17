@@ -51,47 +51,36 @@ const linkItems: LinkItem[] = links.length > 0 ? links : (title ? [{
   .direct-link-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
+    gap: 1.5rem;
     margin: 2rem 0;
     padding: 0;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+    width: 100%;
   }
 
   /* 响应式设计 */
   @media (max-width: 768px) {
     .direct-link-cards {
       grid-template-columns: 1fr;
-      gap: 0.75rem;
-      max-width: 100%;
+      gap: 1rem;
     }
   }
 
-  /* 当只有一个卡片时，限制最大宽度并居中 */
-  .direct-link-cards:has(:nth-child(1):last-child) {
-    grid-template-columns: 1fr;
-    max-width: 360px;
-    margin: 2rem auto;
-  }
-
-  /* 当有两个卡片时，确保两栏布局 */
+  /* 当有两个卡片时，确保两栏布局占满宽度 */
   .direct-link-cards:has(:nth-child(2):last-child) {
     grid-template-columns: repeat(2, 1fr);
-    max-width: 760px;
+    max-width: none;
   }
 
   @media (max-width: 768px) {
     .direct-link-cards:has(:nth-child(2):last-child) {
       grid-template-columns: 1fr;
-      max-width: 100%;
     }
   }
 
   /* 当有奇数个卡片且大于2个时，最后一个跨两列 */
   .direct-link-cards:has(:nth-child(n+3)):has(:nth-child(odd):last-child) :last-child {
     grid-column: 1 / -1;
-    max-width: 360px;
+    max-width: 400px;
     margin: 0 auto;
   }
 

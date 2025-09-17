@@ -527,7 +527,9 @@ const formatDate = (date: Date) => {
               <article class="related-card">
                 {relatedPost.data.heroImage && (
                   <div class="related-image">
-                    <img src={getAssetPath(relatedPost.data.heroImage)} alt={relatedPost.data.title} />
+                    <a href={getBlogPostPath(relatedPost.slug)}>
+                      <img src={getAssetPath(relatedPost.data.heroImage)} alt={relatedPost.data.title} data-no-preview="true" />
+                    </a>
                   </div>
                 )}
                 <div class="related-content">

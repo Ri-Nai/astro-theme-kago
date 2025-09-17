@@ -150,8 +150,8 @@
     }
 
     setupImagePreview() {
-      // 查找所有图片
-      const images = document.querySelectorAll('img:not([data-no-preview])');
+      // 只查找文章内容区域的图片，排除导航、侧边栏、页脚等区域
+      const images = document.querySelectorAll('img:not([data-no-preview]):not(.profile-avatar img):not(.related-image img):not(.navigation img)');
 
       images.forEach((img) => {
         if (!this.processedImages.has(img as HTMLElement)) {

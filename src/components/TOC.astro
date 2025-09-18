@@ -291,15 +291,15 @@ const tocTree = buildTocTree(headings);
 
     // 为TOC链接添加平滑滚动
     tocLinks.forEach((link) => {
-      link.addEventListener('click', (e) => {
+      link.addEventListener("click", (e) => {
         e.preventDefault();
-        const href = link.getAttribute('href');
+        const href = link.getAttribute("href");
         if (href) {
           const target = document.querySelector(href);
           if (target) {
             target.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start'
+              behavior: "smooth",
+              block: "start",
             });
           }
         }
@@ -338,15 +338,17 @@ const tocTree = buildTocTree(headings);
         // 自动滚动目录，使当前选中的标题位于目录顶部
         if (activeLink && tocContent) {
           const tocContentRect = tocContent.getBoundingClientRect();
-          const activeLinkRect = (activeLink as HTMLElement).getBoundingClientRect();
-          
+          const activeLinkRect = (
+            activeLink as HTMLElement
+          ).getBoundingClientRect();
+
           // 计算需要滚动的距离
           const scrollOffset = activeLinkRect.top - tocContentRect.top;
-          
+
           // 平滑滚动到目标位置
           tocContent.scrollTo({
             top: tocContent.scrollTop + scrollOffset,
-            behavior: 'smooth'
+            behavior: "smooth",
           });
         }
 
@@ -360,7 +362,7 @@ const tocTree = buildTocTree(headings);
   }
 
   // 确保在页面完全加载后初始化
-  if (document.readyState === 'loading') {
+  if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initTOCScrollListener);
   } else {
     // 如果页面已经加载完成，直接执行

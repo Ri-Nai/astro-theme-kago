@@ -1,5 +1,5 @@
 ---
-import { getImagePathForAstro, getImageAlt } from '../utils/pathUtils';
+import { getImagePathForAstro, getImageAlt } from "../utils/pathUtils";
 
 export interface Props {
   title: string;
@@ -9,27 +9,23 @@ export interface Props {
   basePath?: string;
 }
 
-const {
-  title,
-  description,
-  website,
-  image,
-  basePath = ""
-} = Astro.props;
+const { title, description, website, image, basePath = "" } = Astro.props;
 ---
 
 <article class="direct-link-card">
   <a href={website} target="_blank" rel="noopener noreferrer">
-    {image && (
-      <div class="direct-link-image">
-        <img
-          src={getImagePathForAstro(image, basePath, Astro.url)}
-          alt={getImageAlt(image, title)}
-          loading="lazy"
-          data-no-preview="true"
-        />
-      </div>
-    )}
+    {
+      image && (
+        <div class="direct-link-image">
+          <img
+            src={getImagePathForAstro(image, basePath, Astro.url)}
+            alt={getImageAlt(image, title)}
+            loading="lazy"
+            data-no-preview="true"
+          />
+        </div>
+      )
+    }
 
     <div class="direct-link-details">
       <div class="direct-link-title">{title}</div>

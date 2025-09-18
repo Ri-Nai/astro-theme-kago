@@ -1,6 +1,6 @@
 ---
-import { getBasePath, getAssetPath } from '../utils/pathUtils';
-import ImagePreview from './ImagePreview.astro';
+import { getBasePath, getAssetPath } from "../utils/pathUtils";
+import ImagePreview from "./ImagePreview.astro";
 
 // Gallery.astro - 图片画廊组件
 export interface Props {
@@ -9,7 +9,11 @@ export interface Props {
   enablePreview?: boolean; // 是否启用图片预览功能
 }
 
-const { class: className, basePath = getBasePath(), enablePreview = true } = Astro.props;
+const {
+  class: className,
+  basePath = getBasePath(),
+  enablePreview = true,
+} = Astro.props;
 ---
 
 <div class={`gallery ${className || ""}`}>
@@ -129,8 +133,8 @@ const { class: className, basePath = getBasePath(), enablePreview = true } = Ast
             if (blogIndex !== -1 && pathParts.length > blogIndex + 1) {
               const blogPath = pathParts.slice(blogIndex + 1).join("/");
               // 在客户端脚本中，我们需要手动处理 base URL
-              const baseUrl = window.location.pathname.split('/')[1] || '';
-              const basePrefix = baseUrl ? `/${baseUrl}` : '';
+              const baseUrl = window.location.pathname.split("/")[1] || "";
+              const basePrefix = baseUrl ? `/${baseUrl}` : "";
               newSrc = `${basePrefix}/imgs/blog/${blogPath}/${src}`;
             }
           }
@@ -242,7 +246,7 @@ const { class: className, basePath = getBasePath(), enablePreview = true } = Ast
       if (img.complete && img.naturalWidth > 0) {
         setupPreview();
       } else {
-        img.addEventListener('load', setupPreview);
+        img.addEventListener("load", setupPreview);
       }
 
       // 添加图片加载状态指示

@@ -5,7 +5,7 @@
 
 <div id="image-preview-container" class="image-preview-container">
   <div class="image-preview-overlay">
-    <img id="preview-image" class="preview-image" src="" alt="预览图片">
+    <img id="preview-image" class="preview-image" src="" alt="预览图片" />
     <div class="preview-controls">
       <button class="preview-btn preview-close" aria-label="关闭">×</button>
       <button class="preview-btn preview-zoom-in" aria-label="放大">+</button>
@@ -34,16 +34,18 @@
     private processedImages: Set<HTMLElement> = new Set();
 
     constructor() {
-      this.container = document.getElementById('image-preview-container')!;
-      this.overlay = this.container.querySelector('.image-preview-overlay')!;
-      this.image = document.getElementById('preview-image') as HTMLImageElement;
+      this.container = document.getElementById("image-preview-container")!;
+      this.overlay = this.container.querySelector(".image-preview-overlay")!;
+      this.image = document.getElementById("preview-image") as HTMLImageElement;
       this.init();
     }
 
     init() {
       // 等待DOM加载完成
       if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => this.setupImagePreview());
+        document.addEventListener("DOMContentLoaded", () =>
+          this.setupImagePreview(),
+        );
       } else {
         setTimeout(() => this.setupImagePreview(), 100);
       }
@@ -54,49 +56,57 @@
 
     bindEvents() {
       // 关闭按钮
-      this.container.querySelector('.preview-close')?.addEventListener('click', () => this.close());
+      this.container
+        .querySelector(".preview-close")
+        ?.addEventListener("click", () => this.close());
 
       // 缩放按钮
-      this.container.querySelector('.preview-zoom-in')?.addEventListener('click', () => this.zoomIn());
-      this.container.querySelector('.preview-zoom-out')?.addEventListener('click', () => this.zoomOut());
-      this.container.querySelector('.preview-reset')?.addEventListener('click', () => this.resetZoom());
+      this.container
+        .querySelector(".preview-zoom-in")
+        ?.addEventListener("click", () => this.zoomIn());
+      this.container
+        .querySelector(".preview-zoom-out")
+        ?.addEventListener("click", () => this.zoomOut());
+      this.container
+        .querySelector(".preview-reset")
+        ?.addEventListener("click", () => this.resetZoom());
 
       // 点击背景关闭
-      this.overlay.addEventListener('click', (e) => {
+      this.overlay.addEventListener("click", (e) => {
         if (e.target === this.overlay) {
           this.close();
         }
       });
 
       // 键盘事件
-      document.addEventListener('keydown', (e) => {
+      document.addEventListener("keydown", (e) => {
         if (!this.isVisible()) return;
 
         switch (e.key) {
-          case 'Escape':
+          case "Escape":
             this.close();
             break;
-          case 'ArrowLeft':
+          case "ArrowLeft":
             this.previousImage();
             break;
-          case 'ArrowRight':
+          case "ArrowRight":
             this.nextImage();
             break;
-          case '+':
-          case '=':
+          case "+":
+          case "=":
             this.zoomIn();
             break;
-          case '-':
+          case "-":
             this.zoomOut();
             break;
-          case '0':
+          case "0":
             this.resetZoom();
             break;
         }
       });
 
       // 鼠标滚轮缩放
-      this.image?.addEventListener('wheel', (e) => {
+      this.image?.addEventListener("wheel", (e) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
         this.scale = Math.min(Math.max(0.5, this.scale + delta), 4);
@@ -104,28 +114,28 @@
       });
 
       // 拖拽功能
-      this.image?.addEventListener('mousedown', (e) => {
+      this.image?.addEventListener("mousedown", (e) => {
         this.isDragging = true;
         this.startX = e.clientX - this.translateX;
         this.startY = e.clientY - this.translateY;
-        if (this.image) this.image.style.cursor = 'grabbing';
+        if (this.image) this.image.style.cursor = "grabbing";
         e.preventDefault();
       });
 
-      document.addEventListener('mousemove', (e) => {
+      document.addEventListener("mousemove", (e) => {
         if (!this.isDragging) return;
         this.translateX = e.clientX - this.startX;
         this.translateY = e.clientY - this.startY;
         this.updateTransform();
       });
 
-      document.addEventListener('mouseup', () => {
+      document.addEventListener("mouseup", () => {
         this.isDragging = false;
-        if (this.image) this.image.style.cursor = 'grab';
+        if (this.image) this.image.style.cursor = "grab";
       });
 
       // 触摸事件支持
-      this.image?.addEventListener('touchstart', (e) => {
+      this.image?.addEventListener("touchstart", (e) => {
         if (e.touches.length === 1) {
           const touch = e.touches[0];
           this.isDragging = true;
@@ -135,7 +145,7 @@
         e.preventDefault();
       });
 
-      document.addEventListener('touchmove', (e) => {
+      document.addEventListener("touchmove", (e) => {
         if (!this.isDragging || e.touches.length !== 1) return;
         const touch = e.touches[0];
         this.translateX = touch.clientX - this.startX;
@@ -144,14 +154,16 @@
         e.preventDefault();
       });
 
-      document.addEventListener('touchend', () => {
+      document.addEventListener("touchend", () => {
         this.isDragging = false;
       });
     }
 
     setupImagePreview() {
       // 只查找文章内容区域的图片，排除导航、侧边栏、页脚等区域
-      const images = document.querySelectorAll('img:not([data-no-preview]):not(.profile-avatar img):not(.related-image img):not(.navigation img)');
+      const images = document.querySelectorAll(
+        "img:not([data-no-preview]):not(.profile-avatar img):not(.related-image img):not(.navigation img)",
+      );
 
       images.forEach((img) => {
         if (!this.processedImages.has(img as HTMLElement)) {
@@ -163,22 +175,26 @@
 
     addPreviewToImage(img: HTMLImageElement) {
       // 添加点击事件监听器
-      img.addEventListener('click', (e) => {
+      img.addEventListener("click", (e) => {
         e.preventDefault();
         this.openPreview(img);
       });
 
       // 添加预览样式
-      img.style.cursor = 'zoom-in';
-      img.setAttribute('data-preview-enabled', 'true');
+      img.style.cursor = "zoom-in";
+      img.setAttribute("data-preview-enabled", "true");
     }
 
     openPreview(clickedImg: HTMLImageElement) {
       // 获取所有可预览的图片
-      this.currentImages = Array.from(document.querySelectorAll('img[data-preview-enabled="true"]')) as HTMLImageElement[];
+      this.currentImages = Array.from(
+        document.querySelectorAll('img[data-preview-enabled="true"]'),
+      ) as HTMLImageElement[];
 
       // 找到当前点击图片的索引
-      this.currentIndex = this.currentImages.findIndex(img => img === clickedImg);
+      this.currentIndex = this.currentImages.findIndex(
+        (img) => img === clickedImg,
+      );
 
       if (this.currentIndex === -1) return;
 
@@ -188,17 +204,17 @@
     }
 
     show() {
-      this.container.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
+      this.container.style.display = "flex";
+      document.body.style.overflow = "hidden";
     }
 
     hide() {
-      this.container.style.display = 'none';
-      document.body.style.overflow = '';
+      this.container.style.display = "none";
+      document.body.style.overflow = "";
     }
 
     isVisible(): boolean {
-      return this.container.style.display === 'flex';
+      return this.container.style.display === "flex";
     }
 
     close() {
@@ -207,17 +223,19 @@
     }
 
     loadImage(index: number) {
-      if (index < 0 || index >= this.currentImages.length || !this.image) return;
+      if (index < 0 || index >= this.currentImages.length || !this.image)
+        return;
 
       const img = this.currentImages[index];
       this.image.src = img.src;
-      this.image.alt = img.alt || '';
+      this.image.alt = img.alt || "";
 
       // 更新计数器
-      const currentIndexEl = document.getElementById('current-index');
-      const totalCountEl = document.getElementById('total-count');
+      const currentIndexEl = document.getElementById("current-index");
+      const totalCountEl = document.getElementById("total-count");
       if (currentIndexEl) currentIndexEl.textContent = (index + 1).toString();
-      if (totalCountEl) totalCountEl.textContent = this.currentImages.length.toString();
+      if (totalCountEl)
+        totalCountEl.textContent = this.currentImages.length.toString();
 
       // 重置变换
       this.resetZoom();
@@ -262,14 +280,14 @@
 
     // 公共方法：禁用特定图片的预览功能
     disablePreview(img: HTMLImageElement) {
-      img.removeAttribute('data-preview-enabled');
-      img.style.cursor = '';
+      img.removeAttribute("data-preview-enabled");
+      img.style.cursor = "";
       // 移除事件监听器需要保存引用
       const clickHandler = (e: Event) => {
         e.preventDefault();
         this.openPreview(img);
       };
-      img.removeEventListener('click', clickHandler);
+      img.removeEventListener("click", clickHandler);
     }
 
     // 公共方法：启用特定图片的预览功能

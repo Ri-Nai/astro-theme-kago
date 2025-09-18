@@ -10,7 +10,11 @@ const svgContents = getSvgContents(profileConfig.socialLinks);
 <div class="profile-card">
   <div class="profile-avatar">
     <a href={getNavPath("/about/")}>
-      <img src={getAssetPath(profileConfig.avatar)} alt={profileConfig.name} data-no-preview="true" />
+      <img
+        src={getAssetPath(profileConfig.avatar)}
+        alt={profileConfig.name}
+        data-no-preview="true"
+      />
     </a>
   </div>
   <div class="profile-info">
@@ -29,8 +33,11 @@ const svgContents = getSvgContents(profileConfig.socialLinks);
             class="social-link"
           >
             <span class="social-icon">
-              {link.icon.startsWith('http') || link.icon.startsWith('/') ? (
-                <div class="social-icon-svg" set:html={svgContents[link.icon]} />
+              {link.icon.startsWith("http") || link.icon.startsWith("/") ? (
+                <div
+                  class="social-icon-svg"
+                  set:html={svgContents[link.icon]}
+                />
               ) : (
                 link.icon
               )}

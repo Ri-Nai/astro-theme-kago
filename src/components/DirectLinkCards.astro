@@ -1,5 +1,5 @@
 ---
-import DirectLinkCard from './DirectLinkCard.astro';
+import DirectLinkCard from "./DirectLinkCard.astro";
 
 export interface LinkItem {
   title: string;
@@ -23,28 +23,37 @@ const {
   website,
   image,
   basePath = "",
-  links = []
+  links = [],
 } = Astro.props;
 
 // 兼容旧的单个链接模式
-const linkItems: LinkItem[] = links.length > 0 ? links : (title ? [{
-  title,
-  description,
-  website: website || "",
-  image
-}] : []);
+const linkItems: LinkItem[] =
+  links.length > 0
+    ? links
+    : title
+      ? [
+          {
+            title,
+            description,
+            website: website || "",
+            image,
+          },
+        ]
+      : [];
 ---
 
 <div class="direct-link-cards">
-  {linkItems.map((link) => (
-    <DirectLinkCard
-      title={link.title}
-      description={link.description}
-      website={link.website}
-      image={link.image}
-      basePath={basePath}
-    />
-  ))}
+  {
+    linkItems.map((link) => (
+      <DirectLinkCard
+        title={link.title}
+        description={link.description}
+        website={link.website}
+        image={link.image}
+        basePath={basePath}
+      />
+    ))
+  }
 </div>
 
 <style>
@@ -78,14 +87,16 @@ const linkItems: LinkItem[] = links.length > 0 ? links : (title ? [{
   }
 
   /* 当有奇数个卡片且大于2个时，最后一个跨两列 */
-  .direct-link-cards:has(:nth-child(n+3)):has(:nth-child(odd):last-child) :last-child {
+  .direct-link-cards:has(:nth-child(n + 3)):has(:nth-child(odd):last-child)
+    :last-child {
     grid-column: 1 / -1;
     max-width: 400px;
     margin: 0 auto;
   }
 
   @media (max-width: 768px) {
-    .direct-link-cards:has(:nth-child(n+3)):has(:nth-child(odd):last-child) :last-child {
+    .direct-link-cards:has(:nth-child(n + 3)):has(:nth-child(odd):last-child)
+      :last-child {
       grid-column: auto;
       max-width: none;
       margin: 0;

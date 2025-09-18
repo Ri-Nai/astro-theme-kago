@@ -3,7 +3,7 @@ import BaseLayout from "./BaseLayout.astro";
 import ArticleList from "../components/ArticleList.astro";
 import Navigation from "../components/Navigation.astro";
 import { getCollection } from "astro:content";
-import { profileConfig } from "@site.config";
+import type { ProfileConfig } from "../site.config.d";
 import { getAssetPath } from "../utils/pathUtils";
 import { getSvgContents } from "../utils/svgUtils";
 import "../styles/global.css";
@@ -11,6 +11,7 @@ import "../styles/global.css";
 export interface Props {
   title?: string;
   description?: string;
+  profileConfig: ProfileConfig;
   hero?: {
     title?: string;
     subtitle?: string;
@@ -23,8 +24,9 @@ export interface Props {
 const {
   title = "首页 - 我的博客",
   description,
+  profileConfig,
   hero = {
-    avatar: "/imgs/avatar.jpg"
+    avatar: profileConfig?.avatar || "/default-avatar.svg"
   },
   showRecentPosts = true,
   recentPostsLimit = 6
@@ -51,7 +53,7 @@ const tagCounts = allTags.reduce(
 );
 
 // 根据配置获取 SVG 内容
-const svgContents = getSvgContents(profileConfig.socialLinks);
+const svgContents = getSvgContents(profileConfig?.socialLinks || []);
 ---
 
 <BaseLayout title={title} description={description}>
@@ -76,7 +78,7 @@ const svgContents = getSvgContents(profileConfig.socialLinks);
           <!-- 社交链接 -->
           <div class="hero-social">
             {
-              profileConfig.socialLinks.map((link) => (
+              (profileConfig?.socialLinks || []).map((link) => (
                 <a
                   href={link.url}
                   title={link.name}

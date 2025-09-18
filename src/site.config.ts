@@ -1,73 +1,33 @@
-// 博客配置文件
-export interface ProfileConfig {
-  avatar: string;
-  name: string;
-  bio: string;
-  author: string;
-  favicon: string;
-  socialLinks: {
-    name: string;
-    url: string;
-    icon: string;
-  }[];
-}
+import type { HomePageConfig } from ".";
+import type { NavigationConfig } from ".";
+import type { ProfileConfig } from ".";
 
-export interface NavigationConfig {
-  brand: {
-    icon: string;
-    text: string;
-  };
-  navItems: {
-    href: string;
-    label: string;
-    icon: string;
-  }[];
-  search: {
-    placeholder: string;
-    title: string;
-    noResultsText: string;
-    errorText: string;
-    startText: string;
-  };
-}
-
-export interface HomePageConfig {
-  title: string;
-  description: string;
-  hero: {
-    title: string;
-    subtitle: string;
-    avatar?: string;
-  };
-  showRecentPosts?: boolean;
-  recentPostsLimit?: number;
-}
-
+// 主题配置示例
 export const profileConfig: ProfileConfig = {
-  avatar: '/imgs/avatar.jpg',
-  name: 'Ri-Nai',
-  bio: '神明大人，为什么要教会我打开鸟笼的方法',
-  author: 'Ri-Nai',
-  favicon: '/favicon.png',
+  avatar: '/imgs/default-avatar.svg',
+  name: 'Yourname',
+  bio: 'Ciallo',
+  author: 'Yourname',
+  favicon: '/favicon.svg',
   socialLinks: [
     {
       name: 'GitHub',
-      url: 'https://github.com/Ri-Nai',
+      url: 'https://github.com/Yourname',
       icon: '/icons/github.svg',
     },
     {
       name: 'Email',
-      url: 'mailto:Ri_Nai_@outlook.com',
+      url: 'mailto:example@outlook.com',
       icon: '/icons/email.svg',
     },
     {
       name: 'Bilibili',
-      url: 'https://space.bilibili.com/4151993',
+      url: 'https://space.bilibili.com/1',
       icon: '/icons/bilibili.svg',
     },
     {
       name: 'Steam',
-      url: 'https://steamcommunity.com/id/Reina__/',
+      url: 'https://steamcommunity.com/profiles/1/',
       icon: '/icons/steam.svg',
     },
   ],
@@ -94,10 +54,10 @@ export const navigationConfig: NavigationConfig = {
 };
 
 export const homePageConfig: HomePageConfig = {
-  title: "首页 - Ri-Nai 的博客",
+  title: "首页 - Yourname 的博客",
   description: "如果努力的尽头是奇迹",
   hero: {
-    title: "欢迎来到 Ri-Nai 的博客",
+    title: "欢迎来到 Yourname 的博客",
     subtitle: profileConfig.bio,
     avatar: profileConfig.avatar
   },

@@ -4,6 +4,9 @@ import { getNavPath, getApiPath } from '../utils/pathUtils';
 
 const currentPath = Astro.url.pathname;
 const { brand, navItems, search } = navigationConfig;
+
+// 预处理 API 路径以便传递给客户端
+const searchApiPath = getApiPath('/blog/index.json');
 ---
 
 <nav class="navbar">
@@ -524,7 +527,7 @@ const { brand, navItems, search } = navigationConfig;
   }
 </style>
 
-<script define:vars={{ search }}>
+<script define:vars={{ search, searchApiPath }}>
   // Mobile menu toggle
   const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
   const mobileMenu = document.getElementById("mobile-menu");
@@ -639,9 +642,8 @@ const { brand, navItems, search } = navigationConfig;
   // 执行搜索
   async function performSearch(query) {
     try {
-      // 这里可以实现实际的搜索逻辑
-      // 目前使用简单的客户端搜索
-      const response = await fetch(getApiPath("/blog/index.json"));
+      // 使用从服务器端传递的处理好的 API 路径
+      const response = await fetch(searchApiPath);
       const posts = await response.json();
 
       const results = posts.filter(

@@ -1,7 +1,7 @@
 {
   "name": "astro-theme-ri-nai",
   "version": "1.0.0",
-  "description": "基于BIT-SE样式的Astro博客主题",
+  "description": "一个美观、现代的 Astro 博客主题模板",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
@@ -15,10 +15,34 @@
     "astro",
     "theme",
     "blog",
-    "bit-se"
+    "template",
+    "markdown",
+    "typescript"
   ],
   "author": "Ri-Nai",
   "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.4",
+    "@astrojs/sitemap": "^3.5.1",
+    "@astrojs/tailwind": "^6.0.2",
+    "astro": "^5.13.3",
+    "katex": "^0.16.22",
+    "photoswipe": "^5.4.4",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "tailwindcss": "^3.4.17"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.5.6",
+    "typescript": "^5.3.3"
+  },
   "peerDependencies": {
     "astro": "^5.0.0",
     "@astrojs/mdx": "^4.0.0",

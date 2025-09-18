@@ -1,0 +1,38 @@
+---
+import { getCollection } from 'astro:content';
+import BlogLayout from '@theme/layouts/BlogLayout.astro';
+import Navigation from '@theme/components/Navigation.astro';
+
+const allPosts = await getCollection('blog');
+const posts = allPosts
+  .filter(post => !post.data.hidden)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 统计数据
+const allTags = [...new Set(posts.flatMap(post => post.data.tags))];
+const allCategories = [...new Set(posts.map(post => post.data.category).filter(Boolean))] as string[];
+
+// 标签统计
+const tagCounts = allTags.reduce((acc, tag) => {
+  acc[tag] = posts.filter(post => post.data.tags.includes(tag)).length;
+  return acc;
+}, {} as Record<string, number>);
+
+// 分类统计
+const categoryStats = allCategories.map(category => ({
+  name: category,
+  count: posts.filter(post => post.data.category === category).length
+}));
+---
+
+<BlogLayout 
+  title="文章列表 - 我的博客" 
+  description="浏览所有博客文章，按标签和分类筛选"
+  posts={posts}
+  allTags={allTags}
+  allCategories={allCategories}
+  tagCounts={tagCounts}
+  categoryStats={categoryStats}
+>
+  <Navigation slot="navigation" />
+</BlogLayout>

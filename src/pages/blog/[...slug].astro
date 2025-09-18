@@ -1,0 +1,43 @@
+---
+import { type CollectionEntry, getCollection } from 'astro:content';
+import ArticleLayout from '@theme/layouts/ArticleLayout.astro';
+import Navigation from '@theme/components/Navigation.astro';
+import { getReadingTime } from '@theme/utils/readingTime';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: post,
+  }));
+}
+
+type Props = CollectionEntry<'blog'>;
+
+const post = Astro.props;
+const { Content, headings } = await post.render();
+
+// 计算阅读时间
+const readingTime = await getReadingTime(post);
+
+// 获取相关文章（相同标签或分类，但排除隐藏文章）
+const allPosts = await getCollection('blog');
+const relatedPosts = allPosts
+  .filter(p => p.slug !== post.slug && !p.data.hidden)
+  .filter(p =>
+    p.data.category === post.data.category ||
+    p.data.tags.some(tag => post.data.tags.includes(tag))
+  )
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<ArticleLayout
+  post={post}
+  headings={headings}
+  readingTime={readingTime}
+  relatedPosts={relatedPosts}
+>
+  <Navigation slot="navigation" />
+  <Content />
+</ArticleLayout>

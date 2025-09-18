@@ -1,0 +1,27 @@
+---
+import { getCollection } from 'astro:content';
+import AboutLayout from '@theme/layouts/AboutLayout.astro';
+import FriendsLayout from '@theme/layouts/FriendsLayout.astro';
+import Navigation from '@theme/components/Navigation.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => ({
+    params: { slug: page.slug },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content } = await page.render();
+
+// 根据页面数据选择布局
+const Layout = page.data.layout?.includes('AboutLayout') ? AboutLayout : FriendsLayout;
+---
+
+<Layout {...page.data}>
+  <Navigation slot="navigation" />
+  <div class="markdown-content">
+    <Content />
+  </div>
+</Layout>

@@ -1,7 +1,6 @@
 // 主题入口文件
 // 导出配置类型和示例配置
-export type { ProfileConfig, NavigationConfig, HomePageConfig } from './config';
-export { exampleProfileConfig, exampleNavigationConfig, exampleHomePageConfig } from './config';
+export type { ProfileConfig, NavigationConfig, HomePageConfig } from './site.config.d';
 
 // 导出主要布局
 export { default as BaseLayout } from './layouts/BaseLayout.astro';

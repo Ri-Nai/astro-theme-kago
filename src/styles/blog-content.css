@@ -1,14 +1,35 @@
 /* ========== 博客正文专用样式 ========== */
 
+/* CSS变量定义 */
+:root {
+  /* 标题样式变量 */
+  --heading-color-h1: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
+  --heading-color-h2: var(--brand-primary);
+  --heading-color-h3: var(--text-primary);
+  --heading-color-h4: var(--text-secondary);
+  --heading-color-h5: var(--text-secondary);
+  --heading-color-h6: var(--text-tertiary);
+
+  /* 文本和元素样式变量 */
+  --text-base-size: 1.05rem;
+  --text-line-height: 1.8;
+  --accent-color: var(--brand-primary);
+  --accent-color-hover: var(--brand-dark);
+
+  /* 间距变量 */
+  --content-margin-bottom: 1.5rem;
+}
+
 /* 正文容器 */
 .blog-content {
-  max-width: 65ch;
+  /* 移除固定宽度限制，让正文区域自然扩展 */
+  max-width: none;
   margin: 0 auto;
 }
 
 /* 段落样式增强 */
 .blog-content p {
-  font-size: 1.05rem;
+  font-size: var(--text-base-size);
   text-align: justify;
   text-justify: inter-word;
   word-break: break-word;
@@ -16,20 +37,25 @@
   letter-spacing: 0.01em;
 }
 
-/* 首段样式 */
-.blog-content > p:first-of-type {
-  font-size: 1.1rem;
-  line-height: 1.9;
+/* 通用标题样式 */
+.blog-content h1,
+.blog-content h2,
+.blog-content h3,
+.blog-content h4,
+.blog-content h5,
+.blog-content h6 {
+  position: relative;
+  scroll-margin-top: 100px;
+  font-weight: 600;
 }
 
-/* 标题样式增强 */
-
+/* 各级标题样式 */
 .blog-content h1 {
   font-size: 2.75rem;
   margin-bottom: 2.5rem;
   margin-top: 0;
   font-weight: 900;
-  background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
+  background: var(--heading-color-h1);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -41,20 +67,19 @@
   margin-top: 3.5rem;
   margin-bottom: 2rem;
   font-weight: 700;
-  color: var(--brand-primary);
+  color: var(--heading-color-h2);
   border-bottom: 3px solid var(--brand-lighter);
   padding-bottom: 0.75rem;
-  position: relative;
 }
 
-.blog-content h2::before {
-  content: '';
+.blog-content h2:before {
+  content: "";
   position: absolute;
   left: 0;
   bottom: -3px;
   width: 60px;
   height: 3px;
-  background: var(--brand-primary);
+  background: var(--accent-color);
   border-radius: 2px;
 }
 
@@ -62,9 +87,7 @@
   font-size: 1.75rem;
   margin-top: 3rem;
   margin-bottom: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  position: relative;
+  color: var(--heading-color-h3);
   padding-left: 1rem;
 }
 
@@ -75,7 +98,7 @@
   top: 0.5rem;
   width: 4px;
   height: 1.5rem;
-  background: var(--brand-primary);
+  background: var(--accent-color);
   border-radius: 2px;
 }
 
@@ -83,26 +106,33 @@
   font-size: 1.5rem;
   margin-top: 2.5rem;
   margin-bottom: 1.25rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-left: 3px solid var(--brand-lighter);
+  color: var(--heading-color-h4);
   padding-left: 1rem;
+}
+
+.blog-content h4::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  width: 2px;
+  height: 1.5rem;
+  background: var(--brand-lighter);
+  border-radius: 2px;
 }
 
 .blog-content h5 {
   font-size: 1.25rem;
   margin-top: 2rem;
   margin-bottom: 1rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--heading-color-h5);
 }
 
 .blog-content h6 {
   font-size: 1.125rem;
   margin-top: 1.75rem;
   margin-bottom: 0.75rem;
-  font-weight: 600;
-  color: var(--text-tertiary);
+  color: var(--heading-color-h6);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -112,15 +142,18 @@
   border-bottom: 1px solid transparent;
   padding-bottom: 1px;
   font-weight: 500;
+  color: var(--accent-color);
+  transition: var(--blog-transition);
 }
 
 .blog-content a:hover {
-  border-bottom-color: var(--brand-primary);
+  border-bottom-color: var(--accent-color);
+  color: var(--accent-color-hover);
 }
 
 /* 强调文本 */
 .blog-content strong {
-  color: var(--brand-primary);
+  color: var(--accent-color);
   font-weight: 700;
 }
 
@@ -130,27 +163,27 @@
 }
 
 /* 代码样式增强 */
-.blog-content :not(pre) > code {
+.blog-content :not(pre)>code {
   color: var(--brand-primary);
   font-weight: 600;
   cursor: pointer;
   position: relative;
 }
 
-.blog-content :not(pre) > code:hover {
+.blog-content :not(pre)>code:hover {
   background: var(--brand-lighter);
   border-color: var(--brand-primary);
   transform: translateY(-1px);
   box-shadow: var(--blog-shadow-1);
 }
 
-.blog-content :not(pre) > code:active {
+.blog-content :not(pre)>code:active {
   transform: translateY(0);
   box-shadow: var(--blog-shadow-1);
 }
 
 /* 复制成功提示 - 点击后强制显示 */
-.blog-content :not(pre) > code.copied::after {
+.blog-content :not(pre)>code.copied::after {
   content: '已复制!' !important;
   background: #10b981 !important;
   color: white !important;
@@ -175,14 +208,17 @@
     opacity: 0;
     transform: translateX(-50%) translateY(10px);
   }
+
   15% {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+
   85% {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+
   100% {
     opacity: 0;
     transform: translateX(-50%) translateY(-10px);
@@ -373,12 +409,12 @@
   margin: 4rem 0;
   border: none;
   height: 2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    var(--brand-lighter) 20%, 
-    var(--brand-primary) 50%, 
-    var(--brand-lighter) 80%, 
-    transparent 100%);
+  background: linear-gradient(90deg,
+      transparent 0%,
+      var(--brand-lighter) 20%,
+      var(--brand-primary) 50%,
+      var(--brand-lighter) 80%,
+      transparent 100%);
   border-radius: 1px;
   position: relative;
 }
@@ -398,18 +434,22 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+
+  /* 变量覆盖 */
+  :root {
+    --text-base-size: 1rem;
+    --text-line-height: 1.7;
+    --content-margin-bottom: 1.25rem;
+  }
+
   .blog-content {
-    font-size: 1rem;
-    line-height: 1.7;
+    font-size: var(--text-base-size);
+    line-height: var(--text-line-height);
   }
 
   .blog-content p {
-    margin-bottom: 1.25rem;
-    line-height: 1.7;
-  }
-
-  .blog-content > p:first-of-type {
-    font-size: 1.05rem;
+    margin-bottom: var(--content-margin-bottom);
+    line-height: var(--text-line-height);
   }
 
   .blog-content h1 {
@@ -439,12 +479,12 @@
     margin-bottom: 1rem;
   }
 
-  .blog-content :not(pre) > code {
+  .blog-content :not(pre)>code {
     font-size: 0.85rem;
     padding: 0.15rem 0.3rem;
   }
 
-  .blog-content :not(pre) > code::after {
+  .blog-content :not(pre)>code::after {
     font-size: 0.7rem;
     top: -1.5rem;
   }
@@ -484,18 +524,12 @@
 }
 
 @media (max-width: 480px) {
-  .blog-content {
-    font-size: 0.95rem;
-    line-height: 1.6;
-  }
 
-  .blog-content p {
-    margin-bottom: 1rem;
-    line-height: 1.6;
-  }
-
-  .blog-content > p:first-of-type {
-    font-size: 1rem;
+  /* 变量覆盖 - 小屏幕 */
+  :root {
+    --text-base-size: 0.95rem;
+    --text-line-height: 1.6;
+    --content-margin-bottom: 1rem;
   }
 
   .blog-content h1 {
@@ -525,12 +559,12 @@
     margin-bottom: 0.875rem;
   }
 
-  .blog-content :not(pre) > code {
+  .blog-content :not(pre)>code {
     font-size: 0.8rem;
     padding: 0.1rem 0.25rem;
   }
 
-  .blog-content :not(pre) > code::after {
+  .blog-content :not(pre)>code::after {
     font-size: 0.65rem;
     top: -1.25rem;
     padding: 0.2rem 0.4rem;

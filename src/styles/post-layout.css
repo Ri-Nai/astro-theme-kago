@@ -1,0 +1,100 @@
+/* 文章样式 */
+.blog-post {
+  padding: 2rem 0;
+  min-height: calc(100vh - 4rem);
+}
+
+/* 文章内容布局 */
+.post-content {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 3rem;
+  align-items: start;
+}
+
+.content-wrapper {
+  min-width: 0;
+}
+
+/* 侧栏样式 */
+.sidebar {
+  position: sticky;
+  top: 120px;
+  max-height: calc(100vh - 140px);
+  overflow-y: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* 文章底部 */
+.post-footer {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.post-navigation {
+  margin-bottom: 2rem;
+}
+
+.back-to-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--brand-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--blog-transition);
+}
+
+.back-to-list:hover {
+  color: var(--brand-dark);
+  transform: translateX(-4px);
+}
+
+.nav-arrow {
+  transition: transform 0.2s ease;
+}
+
+.back-to-list:hover .nav-arrow {
+  transform: translateX(-4px);
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .post-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .sidebar {
+    position: static;
+    max-height: none;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 1rem;
+  }
+
+  .sidebar>* {
+    flex-shrink: 0;
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* 移动端侧栏优化 */
+  .sidebar {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .sidebar>* {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 小屏幕样式在blog-content.css中定义 */
+}

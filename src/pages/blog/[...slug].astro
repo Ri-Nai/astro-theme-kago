@@ -1,6 +1,6 @@
 ---
 import { type CollectionEntry, getCollection } from 'astro:content';
-import ArticleLayout from '@theme/layouts/ArticleLayout.astro';
+import PostLayout from '@theme/layouts/PostLayout.astro';
 import Navigation from '@theme/components/Navigation.astro';
 import { getReadingTime } from '@theme/utils/readingTime';
 
@@ -32,7 +32,7 @@ const relatedPosts = allPosts
   .slice(0, 3);
 ---
 
-<ArticleLayout
+<PostLayout
   post={post}
   headings={headings}
   readingTime={readingTime}
@@ -40,4 +40,4 @@ const relatedPosts = allPosts
 >
   <Navigation slot="navigation" />
   <Content />
-</ArticleLayout>
+</PostLayout>

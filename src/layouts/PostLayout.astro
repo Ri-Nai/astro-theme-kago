@@ -1,0 +1,102 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import Gallery from "../components/Gallery.astro";
+import ProfileCard from "../components/ProfileCard.astro";
+import TOC from "../components/TOC.astro";
+import Giscus from "../components/Giscus.astro";
+import PostHeader from "../components/post/PostHeader.astro";
+import RelatedPosts from "../components/post/RelatedPosts.astro";
+import { getNavPath } from "../utils/pathUtils";
+
+// 样式导入
+import "../styles/global.css";
+import "../styles/blog-content.css";
+import "../styles/post-layout.css";
+import katexStyles from "../styles/math/katex-styles.css?raw";
+
+export interface Props {
+  post: any;
+  headings: any[];
+  readingTime: any;
+  relatedPosts: any[];
+}
+
+const { post, headings, readingTime, relatedPosts } = Astro.props;
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description || `阅读文章：${post.data.title}`}
+  image={post.data.heroImage}
+>
+  {post.data.math && <style is:global set:html={katexStyles} />}
+
+  <slot name="navigation" />
+
+  <main>
+    <article class="blog-post">
+      <div class="container">
+        <!-- 文章头部 -->
+        <PostHeader post={post} readingTime={readingTime} />
+
+        <!-- 文章内容 -->
+        <div class="post-content">
+          <div class="content-wrapper">
+            <!-- 只使用 blog-content 样式类，避免样式冲突 -->
+            <div class="blog-content">
+              <slot />
+              <Gallery />
+            </div>
+          </div>
+
+          <!-- 侧栏 -->
+          <aside class="sidebar">
+            <!-- 作者头像卡片 -->
+            <ProfileCard />
+
+            <!-- 目录导航 -->
+            {headings && headings.length > 0 && <TOC headings={headings} />}
+          </aside>
+        </div>
+
+        <!-- 文章底部 -->
+        <footer class="post-footer">
+          <div class="post-navigation">
+            <a href={getNavPath("/blog")} class="back-to-list">
+              <span class="nav-arrow">←</span>
+              返回文章列表
+            </a>
+          </div>
+
+          <!-- 评论区 -->
+          <Giscus />
+        </footer>
+      </div>
+    </article>
+
+    <!-- 相关文章 -->
+    <RelatedPosts relatedPosts={relatedPosts} />
+  </main>
+</BaseLayout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const tocLinks = document.querySelectorAll(".toc-link");
+
+    tocLinks.forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const href = link.getAttribute("href");
+        if (href) {
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }
+      });
+    });
+  });
+</script>

@@ -1,0 +1,283 @@
+/* KaTeX 样式优化 - 使用CSS变量简化重复样式 */
+:root {
+  --katex-display-bg: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-soft) 50%, var(--bg-secondary) 100%);
+  --katex-display-bg-hover: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-mute) 50%, var(--bg-primary) 100%);
+  --katex-display-border: 1px solid var(--border-color);
+  --katex-display-border-left: 4px solid var(--brand-primary);
+  --katex-divider: linear-gradient(90deg, transparent 0%, var(--border-color) 50%, transparent 100%);
+  --katex-font-family: 'Libertinus Math', 'STIX Two Math', 'TeX Gyre Termes Math', 'Libertinus Serif', 'KaTeX_Main', 'Cambria Math', 'Times New Roman', serif;
+  --katex-math-font: 'Libertinus Math', 'STIX Two Math', 'TeX Gyre Termes Math', serif;
+}
+
+/* 基础字体样式 */
+.katex {
+  font-family: var(--katex-font-family) !important;
+  font-size: 1.15em;
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-weight: 400;
+  font-variant: normal;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 数学符号专用样式 */
+.katex .mord {
+  font-style: normal;
+}
+
+.katex .mathit {
+  font-style: italic;
+}
+
+/* 块级公式统一选择器 */
+.katex-display-selector,
+.katex-display-selector::before,
+.katex-display-selector:hover {
+  /* 这只是一个空的选择器，用于以下mixin模式 */
+}
+
+/* 块级公式样式基础 - 应用于所有块级公式元素 */
+.katex-display,
+.katex:has(math[display="block"]),
+span.katex:has(math[display="block"]) {
+  display: block;
+  margin: 2.5em 0;
+  text-align: center;
+  padding: 2em 1.5em;
+  background: var(--katex-display-bg);
+  border: var(--katex-display-border);
+  border-left: var(--katex-display-border-left);
+  border-radius: 16px;
+  box-shadow: var(--blog-shadow-2);
+  overflow-x: auto;
+  overflow-y: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* 顶部装饰线 */
+.katex-display::before,
+.katex:has(math[display="block"])::before,
+span.katex:has(math[display="block"])::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--katex-divider);
+}
+
+/* 悬停效果 */
+.katex-display:hover,
+.katex:has(math[display="block"]):hover,
+span.katex:has(math[display="block"]):hover {
+  background: var(--katex-display-bg-hover);
+  border-color: var(--brand-primary);
+  border-left-color: var(--brand-primary);
+  box-shadow: var(--blog-shadow-3);
+  transform: translateY(-2px);
+}
+
+/* 块级公式内部KaTeX样式 */
+.katex-display .katex {
+  font-size: 1.3em;
+  display: inline-block;
+  padding: 0;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* 行内公式样式 */
+.katex-inline {
+  margin: 0 0.15em;
+  padding: 0.1em 0.2em;
+  background: var(--bg-soft);
+  border-radius: 4px;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  display: inline-block;
+  vertical-align: baseline;
+  border: 1px solid var(--border-color);
+}
+
+.katex-inline:hover {
+  background: var(--bg-mute);
+  transform: scale(1.02);
+  border-color: var(--brand-primary);
+}
+
+/* LaTeX 风格数学符号统一样式 */
+.katex .mord,
+.katex .mrel,
+.katex .mbin,
+.katex .mop,
+.katex .sqrt>.root,
+.katex .mop.op-symbol,
+.katex .delimsizing,
+.katex .delim-size1,
+.katex .delim-size2,
+.katex .delim-size3,
+.katex .delim-size4,
+.katex .msupsub {
+  font-weight: 400;
+  color: currentColor;
+}
+
+/* 特殊元素样式 */
+.katex .mathdefault {
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.katex .mord.mathdefault,
+.katex .mord.mathrm,
+.katex .mop,
+.katex .op-symbol.large-op {
+  font-family: var(--katex-math-font);
+}
+
+/* 特定元素调整 */
+.katex .mop {
+  font-size: 1.1em;
+}
+
+.katex .op-symbol.large-op {
+  font-size: 1.8em;
+}
+
+.katex .frac-line {
+  border-bottom-color: currentColor;
+  border-bottom-width: 0.06em;
+  border-radius: 0.5px;
+}
+
+.katex .sqrt .sqrt-line {
+  border-top-width: 0.06em;
+}
+
+/* 主题适配 - 合并相同的样式 */
+[data-theme="light"] .katex-display,
+[data-theme="light"] .katex:has(math[display="block"]),
+[data-theme="light"] span.katex:has(math[display="block"]),
+[data-theme="dark"] .katex-display,
+[data-theme="dark"] .katex:has(math[display="block"]),
+[data-theme="dark"] span.katex:has(math[display="block"]),
+:root:not([data-theme]) .katex-display,
+:root:not([data-theme]) .katex:has(math[display="block"]),
+:root:not([data-theme]) span.katex:has(math[display="block"]) {
+  background: var(--katex-display-bg);
+  border-color: var(--border-color);
+  box-shadow: var(--blog-shadow-2);
+}
+
+[data-theme="light"] .katex-display::before,
+[data-theme="light"] .katex:has(math[display="block"])::before,
+[data-theme="light"] span.katex:has(math[display="block"])::before,
+[data-theme="dark"] .katex-display::before,
+[data-theme="dark"] .katex:has(math[display="block"])::before,
+[data-theme="dark"] span.katex:has(math[display="block"])::before,
+:root:not([data-theme]) .katex-display::before,
+:root:not([data-theme]) .katex:has(math[display="block"])::before,
+:root:not([data-theme]) span.katex:has(math[display="block"])::before {
+  background: var(--katex-divider);
+}
+
+[data-theme="light"] .katex-display:hover,
+[data-theme="light"] .katex:has(math[display="block"]):hover,
+[data-theme="light"] span.katex:has(math[display="block"]):hover,
+[data-theme="dark"] .katex-display:hover,
+[data-theme="dark"] .katex:has(math[display="block"]):hover,
+[data-theme="dark"] span.katex:has(math[display="block"]):hover,
+:root:not([data-theme]) .katex-display:hover,
+:root:not([data-theme]) .katex:has(math[display="block"]):hover,
+:root:not([data-theme]) span.katex:has(math[display="block"]):hover {
+  background: var(--katex-display-bg-hover);
+  border-color: var(--brand-primary);
+  box-shadow: var(--blog-shadow-3);
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .katex {
+    font-size: 1.1em;
+  }
+
+  .katex-display,
+  .katex:has(math[display="block"]),
+  span.katex:has(math[display="block"]) {
+    margin: 1.8em 0;
+    padding: 1.5em 1em;
+    border-left-width: 3px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-soft) 100%);
+  }
+
+  .katex-display .katex {
+    font-size: 1.15em;
+    padding: 0;
+  }
+
+  .katex-display:hover,
+  .katex:has(math[display="block"]):hover,
+  span.katex:has(math[display="block"]):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--blog-shadow-2);
+  }
+
+  .katex-inline {
+    margin: 0 0.1em;
+    padding: 0.05em 0.15em;
+  }
+}
+
+@media (max-width: 480px) {
+  .katex {
+    font-size: 1.05em;
+  }
+
+  .katex-display,
+  .katex:has(math[display="block"]),
+  span.katex:has(math[display="block"]) {
+    margin: 1.5em 0;
+    padding: 1.2em 0.8em;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-soft) 100%);
+    border-left-width: 2px;
+  }
+
+  .katex-display .katex {
+    font-size: 1.1em;
+    padding: 0;
+  }
+
+  .katex-display:hover,
+  .katex:has(math[display="block"]):hover,
+  span.katex:has(math[display="block"]):hover {
+    transform: none;
+    box-shadow: var(--blog-shadow-1);
+  }
+
+  /* 移动端主题适配 */
+  [data-theme="dark"] .katex-display,
+  [data-theme="dark"] .katex:has(math[display="block"]),
+  [data-theme="dark"] span.katex:has(math[display="block"]),
+  :root:not([data-theme]) .katex-display,
+  :root:not([data-theme]) .katex:has(math[display="block"]),
+  :root:not([data-theme]) span.katex:has(math[display="block"]) {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-soft) 100%);
+  }
+
+  [data-theme="dark"] .katex-display:hover,
+  [data-theme="dark"] .katex:has(math[display="block"]):hover,
+  [data-theme="dark"] span.katex:has(math[display="block"]):hover,
+  :root:not([data-theme]) .katex-display:hover,
+  :root:not([data-theme]) .katex:has(math[display="block"]):hover,
+  :root:not([data-theme]) span.katex:has(math[display="block"]):hover {
+    box-shadow: var(--blog-shadow-2);
+  }
+}

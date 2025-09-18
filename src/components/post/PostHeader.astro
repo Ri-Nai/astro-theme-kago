@@ -1,0 +1,310 @@
+---
+import {
+  getAssetPath,
+  getNavPath,
+  getBlogListPath,
+} from "../../utils/pathUtils";
+
+export interface Props {
+  post: any;
+  readingTime: any;
+}
+
+const { post, readingTime } = Astro.props;
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+---
+
+<header class="post-header">
+  {
+    post.data.heroImage && (
+      <div class="hero-image">
+        <img src={getAssetPath(post.data.heroImage)} alt={post.data.title} />
+        <div class="hero-overlay" />
+      </div>
+    )
+  }
+
+  <div class="post-meta-top">
+    <nav class="breadcrumb">
+      <a href={getNavPath("/")}>首页</a>
+      <span class="separator">›</span>
+      <a href={getNavPath("/blog")}>文章</a>
+      <span class="separator">›</span>
+      <span class="current">{post.data.title}</span>
+    </nav>
+  </div>
+
+  <div class="post-title-section">
+    <h1 class="post-title">{post.data.title}</h1>
+
+    <div class="post-meta">
+      <div class="meta-item">
+        <span class="meta-icon">📅</span>
+        <time datetime={post.data.pubDate.toISOString()}>
+          {formatDate(post.data.pubDate)}
+        </time>
+      </div>
+
+      <div class="meta-item">
+        <span class="meta-icon">✍️</span>
+        <span>{post.data.author}</span>
+      </div>
+
+      <div class="meta-item">
+        <span class="meta-icon">⏱️</span>
+        <span>{readingTime.text}阅读</span>
+      </div>
+
+      {
+        post.data.updatedDate &&
+          post.data.updatedDate !== post.data.pubDate && (
+            <div class="meta-item">
+              <span class="meta-icon">🔄</span>
+              <span>更新于 {formatDate(post.data.updatedDate)}</span>
+            </div>
+          )
+      }
+    </div>
+
+    <!-- 标签和分类 -->
+    <div class="post-taxonomy">
+      {
+        post.data.category && (
+          <a
+            href={getBlogListPath({ category: post.data.category })}
+            class="post-category"
+          >
+            <span class="category-icon">📂</span>
+            <span class="category-name">{post.data.category}</span>
+          </a>
+        )
+      }
+
+      {
+        post.data.tags && post.data.tags.length > 0 && (
+          <div class="post-tags">
+            <span class="tags-label">🏷️ 标签：</span>
+            {post.data.tags.map((tag) => (
+              <a href={getBlogListPath({ tag })} class="tag-link">
+                {tag}
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</header>
+
+<style>
+  /* 文章头部 */
+  .post-header {
+    position: relative;
+    margin-bottom: 3rem;
+  }
+
+  .hero-image {
+    position: relative;
+    height: 400px;
+    overflow: hidden;
+    border-radius: var(--blog-radius-lg);
+    margin-bottom: 2rem;
+    box-shadow: var(--blog-shadow-2);
+  }
+
+  .hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.3) 70%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
+  }
+
+  .post-meta-top {
+    margin-bottom: 2rem;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .breadcrumb a {
+    color: var(--brand-primary);
+    text-decoration: none;
+    transition: var(--blog-transition);
+  }
+
+  .breadcrumb a:hover {
+    color: var(--brand-dark);
+  }
+
+  .separator {
+    color: var(--text-tertiary);
+  }
+
+  .current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .post-title-section {
+    text-align: center;
+  }
+
+  .post-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--brand-primary);
+    margin-bottom: 2rem;
+    display: inline-block;
+  }
+
+  .post-meta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .meta-icon {
+    font-size: 1rem;
+  }
+
+  .post-taxonomy {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .post-category {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--brand-lighter);
+    color: var(--brand-primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--blog-radius-lg);
+    font-weight: 500;
+    border: 1px solid var(--brand-primary);
+    text-decoration: none;
+    transition: var(--blog-transition);
+  }
+
+  .post-category:hover {
+    background: var(--brand-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--blog-shadow-2);
+  }
+
+  .post-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .tags-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .tag-link {
+    background: var(--bg-soft);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--blog-radius-md);
+    text-decoration: none;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    transition: var(--blog-transition);
+  }
+
+  .tag-link:hover {
+    background: var(--brand-lighter);
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+  }
+
+  /* 响应式适配 */
+  @media (max-width: 768px) {
+    .post-title {
+      font-size: 2rem;
+    }
+
+    .post-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .post-taxonomy {
+      gap: 1rem;
+    }
+
+    .hero-image {
+      height: 250px;
+    }
+
+    .breadcrumb {
+      font-size: 0.8rem;
+    }
+
+    .current {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .post-title {
+      font-size: 1.75rem;
+    }
+
+    .hero-image {
+      height: 200px;
+      margin-bottom: 1.5rem;
+    }
+
+    .post-header {
+      margin-bottom: 2rem;
+    }
+  }
+</style>

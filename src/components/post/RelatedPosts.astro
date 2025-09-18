@@ -1,0 +1,168 @@
+---
+import { getAssetPath, getBlogPostPath } from "../../utils/pathUtils";
+
+export interface Props {
+  relatedPosts: any[];
+}
+
+const { relatedPosts } = Astro.props;
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+---
+
+{
+  relatedPosts.length > 0 && (
+    <section class="related-posts">
+      <div class="container">
+        <h2 class="related-title">📚 相关文章</h2>
+        <div class="related-grid">
+          {relatedPosts.map((relatedPost) => (
+            <article class="related-card">
+              {relatedPost.data.heroImage && (
+                <div class="related-image">
+                  <a href={getBlogPostPath(relatedPost.slug)}>
+                    <img
+                      src={getAssetPath(relatedPost.data.heroImage)}
+                      alt={relatedPost.data.title}
+                      data-no-preview="true"
+                    />
+                  </a>
+                </div>
+              )}
+              <div class="related-content">
+                <h3 class="related-post-title">
+                  <a href={getBlogPostPath(relatedPost.slug)}>
+                    {relatedPost.data.title}
+                  </a>
+                </h3>
+                <div class="related-meta">
+                  <time>{formatDate(relatedPost.data.pubDate)}</time>
+                  {relatedPost.data.category && (
+                    <span class="related-category">
+                      {relatedPost.data.category}
+                    </span>
+                  )}
+                </div>
+                {relatedPost.data.description && (
+                  <p class="related-excerpt">{relatedPost.data.description}</p>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* 相关文章 */
+  .related-posts {
+    background: var(--bg-soft);
+    padding: 4rem 0;
+    margin-top: 4rem;
+  }
+
+  .related-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 3rem;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .related-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--blog-radius-md);
+    overflow: hidden;
+    transition: var(--blog-transition);
+  }
+
+  .related-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--blog-shadow-2);
+    border-color: var(--brand-primary);
+  }
+
+  .related-image {
+    height: 160px;
+    overflow: hidden;
+  }
+
+  .related-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    transition: transform 0.3s ease;
+  }
+
+  .related-card:hover .related-image img {
+    transform: scale(1.05);
+  }
+
+  .related-content {
+    padding: 1.5rem;
+  }
+
+  .related-post-title {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .related-post-title a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .related-post-title a:hover {
+    color: var(--brand-primary);
+  }
+
+  .related-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+  }
+
+  .related-category {
+    background: var(--brand-lighter);
+    color: var(--brand-primary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  .related-excerpt {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .related-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

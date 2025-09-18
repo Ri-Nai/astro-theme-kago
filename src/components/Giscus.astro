@@ -1,0 +1,88 @@
+
+<section class="giscus-comments">
+  <div id="giscus-container"></div>
+</section>
+
+<style>
+  .giscus-comments {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .comments-header {
+    margin-bottom: 2rem;
+  }
+
+  .comments-header h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .comments-header p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  #giscus-container {
+    width: 100%;
+  }
+</style>
+
+<script>
+  // 初始化 Giscus
+  function loadGiscus() {
+    const theme = document.documentElement.getAttribute('data-theme') || 'light';
+    const giscusTheme = theme === 'dark' ? 'catppuccin_frappe' : 'catppuccin_latte';
+
+    // 移除之前的 giscus 脚本（如果存在）
+    const existingScript = document.querySelector('script[src="https://giscus.app/client.js"]');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    // 创建并添加 giscus 脚本
+    const script = document.createElement('script');
+    script.src = "https://giscus.app/client.js";
+    script.setAttribute("data-repo", "Ri-Nai/astro-blog");
+    script.setAttribute("data-repo-id", "R_kgDOPv_k8w");
+    script.setAttribute("data-category", "Announcements");
+    script.setAttribute("data-category-id", "DIC_kwDOPv_k884CvmvD");
+    script.setAttribute("data-mapping", "url");
+    script.setAttribute("data-strict", "0");
+    script.setAttribute("data-reactions-enabled", "1");
+    script.setAttribute("data-emit-metadata", "0");
+    script.setAttribute("data-input-position", "bottom");
+    script.setAttribute("data-theme", giscusTheme);
+    script.setAttribute("data-lang", "zh-CN");
+    script.setAttribute("crossorigin", "anonymous");
+    script.async = true;
+
+    const container = document.getElementById('giscus-container');
+    if (container) {
+      container.appendChild(script);
+    }
+  }
+
+  // 在页面加载后加载 Giscus
+  document.addEventListener('DOMContentLoaded', loadGiscus);
+
+  // 监听主题变化
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (
+        mutation.type === 'attributes' &&
+        mutation.attributeName === 'data-theme'
+      ) {
+        loadGiscus();
+      }
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+</script>

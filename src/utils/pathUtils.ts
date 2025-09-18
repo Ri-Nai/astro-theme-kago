@@ -6,7 +6,7 @@
 /**
  * 获取基础路径（BASE_URL）
  * 在开发环境中返回空字符串，在生产环境中返回配置的 base 值
- * 自动去掉末尾的斜杠以避免重复
+ * 确保末尾没有斜杠以避免与路径拼接时产生双斜杠
  */
 export function getBasePath(): string {
   // 使用 import.meta.env.BASE_URL 获取配置的 base 路径
@@ -24,9 +24,9 @@ export function getBasePath(): string {
 export function normalizePath(path: string): string {
   if (!path) return '';
 
-  // 去掉末尾的斜杠（除非是根路径）
-  if (path.length > 1 && path.endsWith('/')) {
-    path = path.slice(0, -1);
+  // 确保末尾有斜杠（除非是空路径）
+  if (path.length > 0 && !path.endsWith('/')) {
+    path = path + '/';
   }
 
   return path;
@@ -50,7 +50,9 @@ export function getInternalPath(path: string): string {
 
   // 添加 base 前缀
   const basePath = getBasePath();
-  return normalizePath(`${basePath}${normalizedPath}`);
+
+  // 对于内部页面链接，确保末尾有斜杠
+  return ensureTrailingSlash(`${basePath}${normalizedPath}`);
 }
 
 /**
@@ -71,7 +73,9 @@ export function getAssetPath(assetPath: string): string {
 
   // 添加 base 前缀
   const basePath = getBasePath();
-  return normalizePath(`${basePath}${normalizedPath}`);
+
+  // 对于静态资源，我们不添加末尾斜杠，所以不调用 normalizePath
+  return `${basePath}${normalizedPath}`;
 }
 
 /**
@@ -145,7 +149,7 @@ export function getImagePath(
     }
   }
 
-  // 添加 base 前缀
+  // 添加 base 前缀 (对于图片资源，我们不添加末尾斜杠)
   return getAssetPath(finalPath);
 }
 
@@ -223,4 +227,14 @@ export function getImageAlt(imageSrc: string, alt?: string): string {
  */
 export function getApiPath(apiPath: string): string {
   return getAssetPath(apiPath);
+}
+
+/**
+ * 确保页面路径末尾有斜杠
+ * @param path 原始路径
+ * @returns 处理后的路径（带斜杠）
+ */
+export function ensureTrailingSlash(path: string): string {
+  if (!path) return '/';
+  return path.endsWith('/') ? path : `${path}/`;
 }

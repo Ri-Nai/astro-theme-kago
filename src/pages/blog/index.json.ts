@@ -1,11 +1,11 @@
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 
 export async function GET() {
-  const posts = await getCollection('blog', ({ data }) => {
+  const posts = await getCollection('blog', ({ data }: CollectionEntry<'blog'>) => {
     return !data.draft;
   });
 
-  const postsData = posts.map((post) => ({
+  const postsData = posts.map((post: CollectionEntry<'blog'>) => ({
     title: post.data.title,
     description: post.data.description,
     url: `/blog/${post.id}`,

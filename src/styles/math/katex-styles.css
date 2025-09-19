@@ -1,7 +1,10 @@
 /* KaTeX 样式优化 - 使用CSS变量简化重复样式 */
 :root {
-  --katex-display-bg: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-soft) 50%, var(--bg-secondary) 100%);
-  --katex-display-bg-hover: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-mute) 50%, var(--bg-primary) 100%);
+  --katex-display-bg: rgba(255, 255, 255, 0.1);
+  --katex-display-bg-hover: rgba(255, 255, 255, 0.15);
+  --katex-glass-blur: blur(10px);
+  --katex-glass-border: rgba(255, 255, 255, 0.2);
+  --katex-glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   --katex-display-border: 1px solid var(--border-color);
   --katex-display-border-left: 4px solid var(--brand-primary);
   --katex-divider: linear-gradient(90deg, transparent 0%, var(--border-color) 50%, transparent 100%);
@@ -14,6 +17,8 @@
   font-family: var(--katex-font-family) !important;
   font-size: 1.15em;
   color: var(--text-primary);
+  backdrop-filter: var(--katex-glass-blur);
+  -webkit-backdrop-filter: var(--katex-glass-blur);
   line-height: 1.6;
   font-weight: 400;
   font-variant: normal;

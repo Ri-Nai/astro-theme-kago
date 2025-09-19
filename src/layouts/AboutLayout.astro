@@ -30,8 +30,8 @@ const socialLinks = profileConfig.socialLinks;
 const svgContents = getSvgContents(socialLinks);
 
 // 预处理 hero description 和 subtitle
-let renderedHeroDescription = null;
-let renderedHeroSubtitle = null;
+let renderedHeroDescription: string[] | string | null = null;
+let renderedHeroSubtitle: string | null = null;
 
 if (hero?.description) {
   if (Array.isArray(hero.description)) {

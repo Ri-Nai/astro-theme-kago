@@ -6,13 +6,13 @@ import Navigation from '@theme/components/Navigation.astro';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages');
-  return pages.map((page) => ({
+  return pages.map((page: any) => ({
     params: { slug: page.slug },
     props: { page },
   }));
 }
 
-const { page } = Astro.props;
+const { page }: { page: any } = Astro.props;
 const { Content } = await page.render();
 
 // 根据页面数据选择布局

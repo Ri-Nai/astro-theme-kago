@@ -1,5 +1,4 @@
 // SVG 工具函数
-import type { ImageMetadata } from 'astro';
 
 // 预加载所有 public/icons 目录下的 SVG 文件
 const svgModules = import.meta.glob<{ default: string }>('/public/icons/*.svg', {

@@ -13,10 +13,7 @@ const { bvid, width = 560, height = 315 } = Astro.props;
     src={`https://player.bilibili.com/player.html?bvid=${bvid}&page=1`}
     width={width}
     height={height}
-    scrolling="no"
-    border="0"
-    frameborder="no"
-    framespacing="0"
+    style="border: none;"
     allowfullscreen="true"
     loading="lazy"
   >

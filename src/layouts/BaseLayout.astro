@@ -74,7 +74,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link href="https://fonts.googleapis.com/css2?family=Fira+Math&display=swap" rel="stylesheet">
 
     <!-- 全局配置 -->
-    <script define:vars={{ giscusConfig }}>
+    <script is:inline define:vars={{ giscusConfig }}>
       window.SITE_CONFIG = {
         giscus: giscusConfig || {
           mapping: 'url',
@@ -260,7 +260,47 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- 代码块复制功能脚本 -->
     <script>
-      // 代码块复制功能
+      // 通用的文本复制函数
+      async function copyTextToClipboard(text, successCallback, errorCallback) {
+        if (!text) {
+          console.warn('尝试复制空文本');
+          if (errorCallback) errorCallback(new Error('空文本'));
+          return;
+        }
+
+        try {
+          // 尝试使用现代的Clipboard API
+          await navigator.clipboard.writeText(text);
+          if (successCallback) successCallback();
+        } catch (err) {
+          console.error('Clipboard API复制失败:', err);
+
+          // 降级方案：使用选择和复制方法
+          try {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            // 告知用户手动使用快捷键复制
+            console.warn('请使用Ctrl+C/Cmd+C手动复制');
+
+            // 延迟移除，给用户时间手动复制
+            setTimeout(() => {
+              document.body.removeChild(textArea);
+              if (errorCallback) errorCallback(err);
+            }, 100);
+          } catch (fallbackErr) {
+            console.error('所有复制方法都失败:', fallbackErr);
+            if (errorCallback) errorCallback(fallbackErr);
+          }
+        }
+      }
       function initCodeCopyButtons() {
         // 为所有代码块添加复制按钮
         const codeBlocks = document.querySelectorAll('pre');
@@ -281,19 +321,16 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
           `;
 
           // 添加点击事件
-          copyBtn.addEventListener('click', async () => {
-            try {
-              // 获取代码内容
-              const codeElement = pre.querySelector('code');
-              const textToCopy = codeElement ? codeElement.textContent || '' : pre.textContent || '';
+          copyBtn.addEventListener('click', () => {
+            // 获取代码内容
+            const codeElement = pre.querySelector('code');
+            const textToCopy = codeElement ? codeElement.textContent || '' : pre.textContent || '';
 
-              // 复制到剪贴板
-              await navigator.clipboard.writeText(textToCopy);
+            const copyText = copyBtn.querySelector('.copy-text');
+            const originalText = copyText?.textContent || '复制';
 
-              // 更新按钮状态
-              const copyText = copyBtn.querySelector('.copy-text');
-              const originalText = copyText?.textContent || '复制';
-
+            // 复制成功回调
+            const onSuccess = () => {
               copyBtn.classList.add('copied');
               if (copyText) copyText.textContent = '已复制';
 
@@ -302,38 +339,16 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 copyBtn.classList.remove('copied');
                 if (copyText) copyText.textContent = originalText;
               }, 2000);
+            };
 
-            } catch (err) {
-              console.error('复制失败:', err);
+            // 复制失败回调
+            const onError = (err) => {
+              console.error('代码块复制失败:', err);
+              alert('复制失败，请手动选择并复制代码');
+            };
 
-              // 降级方案：使用传统的选择和复制方法
-              const range = document.createRange();
-              const codeElement = pre.querySelector('code') || pre;
-              range.selectNodeContents(codeElement);
-
-              const selection = window.getSelection();
-              if (selection) {
-                selection.removeAllRanges();
-                selection.addRange(range);
-              }
-
-              try {
-                document.execCommand('copy');
-                if (selection) selection.removeAllRanges();
-
-                const copyText = copyBtn.querySelector('.copy-text');
-                copyBtn.classList.add('copied');
-                if (copyText) copyText.textContent = '已复制';
-
-                setTimeout(() => {
-                  copyBtn.classList.remove('copied');
-                  if (copyText) copyText.textContent = '复制';
-                }, 2000);
-              } catch (fallbackErr) {
-                console.error('降级复制方案也失败:', fallbackErr);
-                alert('复制失败，请手动选择并复制代码');
-              }
-            }
+            // 执行复制
+            copyTextToClipboard(textToCopy, onSuccess, onError);
           });
 
           // 将按钮添加到代码块
@@ -359,13 +374,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
           // 跳过已经有事件监听器的代码块
           if (code.hasAttribute('data-copy-initialized')) return;
 
-          code.addEventListener('click', async (event) => {
-            const target = event.currentTarget;
+          code.addEventListener('click', (event) => {
+            const target = event.currentTarget as HTMLElement;
+            if (!target) return;
 
-            try {
-              // 复制文本到剪贴板
-              await navigator.clipboard.writeText(target.textContent || '');
+            const text = target.textContent || '';
 
+            // 复制成功回调
+            const onSuccess = () => {
               // 添加复制成功样式
               target.classList.add('copied');
 
@@ -373,22 +389,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
               setTimeout(() => {
                 target.classList.remove('copied');
               }, 2000);
+            };
 
-            } catch (err) {
-              // 如果剪贴板API不可用，使用传统方法
-              const textArea = document.createElement('textarea');
-              textArea.value = target.textContent || '';
-              document.body.appendChild(textArea);
-              textArea.select();
-              document.execCommand('copy');
-              document.body.removeChild(textArea);
+            // 复制失败回调
+            const onError = (err) => {
+              console.error('行内代码复制失败:', err);
+            };
 
-              // 显示复制成功样式
-              target.classList.add('copied');
-              setTimeout(() => {
-                target.classList.remove('copied');
-              }, 2000);
-            }
+            // 执行复制
+            copyTextToClipboard(text, onSuccess, onError);
           });
 
           // 标记为已初始化

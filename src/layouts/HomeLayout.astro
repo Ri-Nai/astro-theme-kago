@@ -34,23 +34,23 @@ const {
 
 // 获取博客文章数据
 const allPosts = await getCollection("blog");
-const visiblePosts = allPosts.filter((post) => !post.data.hidden);
+const visiblePosts = allPosts.filter((post: { data: { hidden: boolean } }) => !post.data.hidden);
 const recentPosts = visiblePosts
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .sort((a: { data: { pubDate: Date } }, b: { data: { pubDate: Date } }) =>
+    b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, recentPostsLimit);
 
-const allTags = [...new Set(visiblePosts.flatMap((post) => post.data.tags || []))];
+const allTags = [...new Set(visiblePosts.flatMap((post: { data: { tags?: string[] } }) => post.data.tags || []))];
 
 // 热门标签
-const tagCounts = allTags.reduce(
-  (acc, tag) => {
-    acc[tag] = visiblePosts.filter((post) =>
+const tagCounts: Record<string, number> = {};
+allTags.forEach((tag) => {
+  if (typeof tag === 'string') {
+    tagCounts[tag] = visiblePosts.filter((post: { data: { tags?: string[] } }) =>
       (post.data.tags || []).includes(tag),
     ).length;
-    return acc;
-  },
-  {} as Record<string, number>,
-);
+  }
+});
 
 // 根据配置获取 SVG 内容
 const svgContents = getSvgContents(profileConfig?.socialLinks || []);

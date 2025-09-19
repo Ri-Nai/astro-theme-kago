@@ -4,8 +4,10 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"],
-      "@site.config": ["./src/site.config.ts"]
-    }
+      "@site.config": ["./src/site.config.ts"],
+      "@theme/*": ["./src/*"]
+    },
+    "noImplicitAny": false
   },
   "include": ["src/**/*"]
 }

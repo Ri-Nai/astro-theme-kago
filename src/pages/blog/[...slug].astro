@@ -6,7 +6,7 @@ import { getReadingTime } from '@theme/utils/readingTime';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  return posts.map((post) => ({
+  return posts.map((post: any) => ({
     params: { slug: post.slug },
     props: post,
   }));
@@ -23,12 +23,12 @@ const readingTime = await getReadingTime(post);
 // 获取相关文章（相同标签或分类，但排除隐藏文章）
 const allPosts = await getCollection('blog');
 const relatedPosts = allPosts
-  .filter(p => p.slug !== post.slug && !p.data.hidden)
-  .filter(p =>
+  .filter((p: any) => p.slug !== post.slug && !p.data.hidden)
+  .filter((p: any) =>
     p.data.category === post.data.category ||
-    p.data.tags.some(tag => post.data.tags.includes(tag))
+    p.data.tags.some((tag: any) => post.data.tags.includes(tag))
   )
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .sort((a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3);
 ---
 

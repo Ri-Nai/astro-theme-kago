@@ -5,28 +5,28 @@ import Navigation from '@theme/components/Navigation.astro';
 
 const allPosts = await getCollection('blog');
 const posts = allPosts
-  .filter(post => !post.data.hidden)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+  .filter((post: any) => !post.data.hidden)
+  .sort((a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 // 统计数据
-const allTags = [...new Set(posts.flatMap(post => post.data.tags))];
-const allCategories = [...new Set(posts.map(post => post.data.category).filter(Boolean))] as string[];
+const allTags = [...new Set(posts.flatMap((post: any) => post.data.tags))].filter(tag => typeof tag === 'string') as string[];
+const allCategories = [...new Set(posts.map((post: any) => post.data.category).filter(Boolean))] as string[];
 
 // 标签统计
-const tagCounts = allTags.reduce((acc, tag) => {
-  acc[tag] = posts.filter(post => post.data.tags.includes(tag)).length;
-  return acc;
-}, {} as Record<string, number>);
+const tagCounts: Record<string, number> = {};
+allTags.forEach((tag) => {
+  tagCounts[tag] = posts.filter((post: any) => post.data.tags.includes(tag)).length;
+});
 
 // 分类统计
 const categoryStats = allCategories.map(category => ({
   name: category,
-  count: posts.filter(post => post.data.category === category).length
+  count: posts.filter((post: any) => post.data.category === category).length
 }));
 ---
 
-<BlogLayout 
-  title="文章列表 - 我的博客" 
+<BlogLayout
+  title="文章列表 - 我的博客"
   description="浏览所有博客文章，按标签和分类筛选"
   posts={posts}
   allTags={allTags}

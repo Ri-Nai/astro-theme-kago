@@ -527,7 +527,7 @@ const searchApiPath = getApiPath("/blog/index.json");
   }
 </style>
 
-<script define:vars={{ search, searchApiPath }}>
+<script is:inline define:vars={{ search, searchApiPath }}>
   // Mobile menu toggle
   const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
   const mobileMenu = document.getElementById("mobile-menu");

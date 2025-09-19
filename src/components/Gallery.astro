@@ -1,5 +1,5 @@
 ---
-import { getBasePath, getAssetPath } from "../utils/pathUtils";
+import { getBasePath } from "../utils/pathUtils";
 import ImagePreview from "./ImagePreview.astro";
 
 // Gallery.astro - 图片画廊组件
@@ -16,19 +16,19 @@ const {
 } = Astro.props;
 ---
 
-<div class={`gallery ${className || ""}`}>
+<div class={`gallery ${className || ""}`} data-base-path={basePath}>
   <slot />
 </div>
 
 {enablePreview && <ImagePreview />}
 
 <script>
+  // 保存基础路径
+  document.documentElement.dataset.basePath = document.querySelector('.gallery')?.getAttribute('data-base-path') || "";
+
   // 图片画廊处理脚本
   class AstroGallery {
-    private processedImages: Set<HTMLElement>;
-
     constructor() {
-      this.processedImages = new Set(); // 记录已处理的图片
       this.init();
     }
 
@@ -112,8 +112,8 @@ const {
     }
 
     optimizeImagePaths(container: HTMLElement) {
-      const basePath = "${basePath}";
       const currentPath = window.location.pathname;
+      const basePath = document.documentElement.dataset.basePath || "";
 
       if (!basePath && !currentPath.includes("/blog/")) return;
 

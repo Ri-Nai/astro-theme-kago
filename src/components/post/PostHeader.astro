@@ -91,7 +91,7 @@ const formatDate = (date: Date) => {
         post.data.tags && post.data.tags.length > 0 && (
           <div class="post-tags">
             <span class="tags-label">🏷️ 标签：</span>
-            {post.data.tags.map((tag) => (
+            {post.data.tags.map((tag: string) => (
               <a href={getBlogListPath({ tag })} class="tag-link">
                 {tag}
               </a>

@@ -12,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // https://astro.build/config
 export default defineConfig({
   site: 'https://yourdomain.com',
-  base: '/',
+  base: '/astro-theme-kago/',
   trailingSlash: 'always',
   integrations: [mdx(), sitemap(), tailwind()],
   vite: {

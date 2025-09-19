@@ -32,8 +32,13 @@
 </style>
 
 <script>
+  // 从全局配置中获取 Giscus 配置
+  const giscusConfig = (window as any).SITE_CONFIG?.giscus;
+
   // 初始化 Giscus
   function loadGiscus() {
+    if (!giscusConfig || !giscusConfig.enabled) return;
+
     const theme = document.documentElement.getAttribute('data-theme') || 'light';
     const giscusTheme = theme === 'dark' ? 'catppuccin_frappe' : 'catppuccin_latte';
 
@@ -46,17 +51,17 @@
     // 创建并添加 giscus 脚本
     const script = document.createElement('script');
     script.src = "https://giscus.app/client.js";
-    script.setAttribute("data-repo", "Ri-Nai/astro-blog");
-    script.setAttribute("data-repo-id", "R_kgDOPv_k8w");
-    script.setAttribute("data-category", "Announcements");
-    script.setAttribute("data-category-id", "DIC_kwDOPv_k884CvmvD");
-    script.setAttribute("data-mapping", "url");
-    script.setAttribute("data-strict", "0");
-    script.setAttribute("data-reactions-enabled", "1");
-    script.setAttribute("data-emit-metadata", "0");
-    script.setAttribute("data-input-position", "bottom");
+    script.setAttribute("data-repo", giscusConfig.repo);
+    script.setAttribute("data-repo-id", giscusConfig.repoId);
+    script.setAttribute("data-category", giscusConfig.category);
+    script.setAttribute("data-category-id", giscusConfig.categoryId);
+    script.setAttribute("data-mapping", giscusConfig.mapping || "url");
+    script.setAttribute("data-strict", giscusConfig.strict || "0");
+    script.setAttribute("data-reactions-enabled", giscusConfig.reactionsEnabled || "1");
+    script.setAttribute("data-emit-metadata", giscusConfig.emitMetadata || "0");
+    script.setAttribute("data-input-position", giscusConfig.inputPosition || "bottom");
     script.setAttribute("data-theme", giscusTheme);
-    script.setAttribute("data-lang", "zh-CN");
+    script.setAttribute("data-lang", giscusConfig.lang || "zh-CN");
     script.setAttribute("crossorigin", "anonymous");
     script.async = true;
 

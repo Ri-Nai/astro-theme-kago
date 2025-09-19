@@ -1,6 +1,7 @@
 ---
 import { getAssetPath } from '../utils/pathUtils';
 import { profileConfig } from '@site.config';
+import { giscusConfig } from '@site.config';
 
 export interface Props {
   title: string;
@@ -71,6 +72,21 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Fira Math - 现代无衬线数学字体 -->
     <link href="https://fonts.googleapis.com/css2?family=Fira+Math&display=swap" rel="stylesheet">
+
+    <!-- 全局配置 -->
+    <script define:vars={{ giscusConfig }}>
+      window.SITE_CONFIG = {
+        giscus: giscusConfig || {
+          mapping: 'url',
+          strict: '0',
+          reactionsEnabled: '1',
+          emitMetadata: '0',
+          inputPosition: 'bottom',
+          lang: 'zh-CN',
+          enabled: true
+        }
+      };
+    </script>
 
     <!-- 本地字体资源 -->
     <style>

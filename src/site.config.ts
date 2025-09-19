@@ -1,6 +1,9 @@
-import type { HomePageConfig } from ".";
-import type { NavigationConfig } from ".";
-import type { ProfileConfig } from ".";
+import type {
+  HomePageConfig,
+  NavigationConfig,
+  ProfileConfig,
+  GiscusConfig
+} from "./site.config.d";
 
 // 主题配置示例
 export const profileConfig: ProfileConfig = {
@@ -61,4 +64,18 @@ export const homePageConfig: HomePageConfig = {
     subtitle: profileConfig.bio,
     avatar: profileConfig.avatar
   },
+};
+
+export const giscusConfig: GiscusConfig = {
+  repo: "username/repo-name",
+  repoId: "your-repo-id",
+  category: "Announcements",
+  categoryId: "your-category-id",
+  mapping: "url",
+  strict: "0",
+  reactionsEnabled: "1",
+  emitMetadata: "0",
+  inputPosition: "bottom",
+  lang: "zh-CN",
+  enabled: true,
 };

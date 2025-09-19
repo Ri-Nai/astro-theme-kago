@@ -12,6 +12,20 @@ export interface ProfileConfig {
   }[];
 }
 
+export interface GiscusConfig {
+  repo: string;
+  repoId: string;
+  category: string;
+  categoryId: string;
+  mapping?: string;
+  strict?: string;
+  reactionsEnabled?: string;
+  emitMetadata?: string;
+  inputPosition?: string;
+  lang?: string;
+  enabled?: boolean;
+}
+
 export interface NavigationConfig {
   brand: {
     icon: string;
@@ -41,4 +55,11 @@ export interface HomePageConfig {
   };
   showRecentPosts?: boolean;
   recentPostsLimit?: number;
+}
+
+export interface SiteConfig {
+  profile: ProfileConfig;
+  navigation: NavigationConfig;
+  homePage: HomePageConfig;
+  giscus?: GiscusConfig;
 }

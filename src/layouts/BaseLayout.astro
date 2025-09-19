@@ -261,7 +261,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <!-- 代码块复制功能脚本 -->
     <script>
       // 通用的文本复制函数
-      async function copyTextToClipboard(text, successCallback, errorCallback) {
+      async function copyTextToClipboard(text: string, successCallback: () => void, errorCallback: (error: unknown) => void) {
         if (!text) {
           console.warn('尝试复制空文本');
           if (errorCallback) errorCallback(new Error('空文本'));
@@ -342,7 +342,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             };
 
             // 复制失败回调
-            const onError = (err) => {
+            const onError = (err: unknown) => {
               console.error('代码块复制失败:', err);
               alert('复制失败，请手动选择并复制代码');
             };
@@ -392,7 +392,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             };
 
             // 复制失败回调
-            const onError = (err) => {
+            const onError = (err: unknown) => {
               console.error('行内代码复制失败:', err);
             };
 

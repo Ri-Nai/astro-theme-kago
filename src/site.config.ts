@@ -67,10 +67,10 @@ export const homePageConfig: HomePageConfig = {
 };
 
 export const giscusConfig: GiscusConfig = {
-  repo: "username/repo-name",
-  repoId: "your-repo-id",
+  repo: "Ri-Nai/astro-theme-kago",
+  repoId: "R_kgDOPyFt-A", // Your actual repo ID
   category: "Announcements",
-  categoryId: "your-category-id",
+  categoryId: "DIC_kwDOPyFt-M4CvpmA",
   mapping: "url",
   strict: "0",
   reactionsEnabled: "1",

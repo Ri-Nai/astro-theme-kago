@@ -93,7 +93,7 @@ export function getBlogPostPath(slug: string): string {
  * @returns 处理后的博客列表路径
  */
 export function getBlogListPath(params?: { category?: string; tag?: string }): string {
-  let path = '/blog';
+  let path = '/blog/';
 
   if (params?.category) {
     path += `?category=${encodeURIComponent(params.category)}`;

@@ -236,5 +236,5 @@ export function getApiPath(apiPath: string): string {
  */
 export function ensureTrailingSlash(path: string): string {
   if (!path) return '/';
-  return path.endsWith('/') ? path : `${path}/`;
+  return (path.endsWith('/') || path.includes('?')) ? path : `${path}/`;
 }
